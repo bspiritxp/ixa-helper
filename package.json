@@ -1,0 +1,19 @@
+{
+  "name": "ixa-helper",
+  "version": "1.0.0",
+  "description": "sengokuixa.jp helper for pc client.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "http-server -c5"
+  },
+  "keywords": [
+    "ixa",
+    "game"
+  ],
+  "author": "Jochen.He",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "github:indexzero/http-server"
+  }
+}
