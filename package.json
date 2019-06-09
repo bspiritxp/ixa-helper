@@ -5,15 +5,27 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "http-server -c5"
+    "server": "http-server -c5 ./dist/",
+    "build-dev": "NODE_ENV=development webpack && node scripts/build.js",
+    "build": "webpack && node scripts/build.js"
   },
   "keywords": [
-    "ixa",
+    "sengokuixa",
     "game"
   ],
   "author": "Jochen.He",
   "license": "ISC",
   "dependencies": {
-    "http-server": "github:indexzero/http-server"
+    "http-server": "github:indexzero/http-server",
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "webpack": "^4.33.0",
+    "webpack-cli": "^3.3.2"
+  },
+  "options": {
+    "presets": ["env"]
   }
 }
