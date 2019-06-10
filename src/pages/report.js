@@ -1,5 +1,5 @@
-import { query } from 'Utils/dom'
+import { reports } from 'Utils/data'
 
-export default Report = () => {
-
+export default () => {
+    console.log(reports().value())
 }

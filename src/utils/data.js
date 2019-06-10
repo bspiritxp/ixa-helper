@@ -19,4 +19,5 @@ export {
     mainCity,       // player's main village
     myFronts,       // player's fronts
     myVillages,     // all villages of player
+    reports,        // all reports wappered by lodash，need call value method if fetch real data.
 }

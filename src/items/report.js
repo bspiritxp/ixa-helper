@@ -3,6 +3,7 @@ import { createUnique } from 'Utils/dom'
 
 const REPORT_TYPE = [
     '秘境探索',
+    '空き地攻撃',
 ]
 
 const RESOURCE_TYPE = {
@@ -21,7 +22,8 @@ export default class Report {
             this.unReaded = el.hasClassName('noread')
             this.url = el.querySelector('a').href.trim()
             this.ress = new Map()
-            this.type = el.querySelector('img').alt.trim()
+            const imgEL = el.querySelector('img')
+            this.type = imgEL ? imgEL.alt.trim() : 'other'
         }
     }
 
@@ -39,7 +41,7 @@ export default class Report {
             const bodyText = await request.text()
             const ifm = createUnique('iframe', 'ixah-report', false)
             ifm.contentDocument.body.innerHTML = bodyText
-            fetchRess(ifm.contentDocument.querySelector(this._selector())
+            fetchRess(ifm.contentDocument.querySelector(this._selector()))
         }
     }
 
