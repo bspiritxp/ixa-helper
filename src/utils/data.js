@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Village } from 'Items'
+import { Village, Report } from 'Items'
 import { query, queryAll, queryLocGroup } from 'Utils/dom'
 
 const locationGroup = _.partial(queryLocGroup, _, cssSelector => new Village(cssSelector))
@@ -12,7 +12,7 @@ const myVillages = () => locationGroup('.my_country.village li')
 
 const myFronts = () => locationGroup('.other_country li:not(.head)')
 
-const reports = noReaded => null
+const reports = () => _.chain(queryAll('table.p_report tr:not(:nth-child(1))')).map(el => new Report(el))
 
 export {
     currentVillage, // current selected village

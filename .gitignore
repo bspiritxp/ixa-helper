@@ -62,9 +62,6 @@ typings/
 
 .vscode/
 .DS_Store
-<<<<<<< HEAD
-=======
 *.lock
 package-lock.json
 dist/*.js
->>>>>>> modify project struct

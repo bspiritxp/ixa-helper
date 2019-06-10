@@ -8,14 +8,16 @@ export const queryLocGroup = (selector, makeItem) => {
     return new Set(items)
 }
 
-export const createUnique = (tagName, idName) => {
+export const createUnique = (tagName, idName, isShow) => {
     let result = query(`${tagName}#${idName}`)
     if (result) return result
-    return create(tagName, idName)
+    return create(tagName, idName, isShow)
 }
 
-export const create = (tagName, idName) => {
+export const create = (tagName, idName, isShow) => {
     const result = document.createElement(tagName)
     result.id = idName
+    result.style.visibility = isShow ? 'visible' : 'hidden'
+    document.body.append(result)
     return result
 }

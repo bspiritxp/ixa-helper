@@ -2,8 +2,17 @@ import _ from 'lodash'
 import { createUnique } from 'Utils/dom'
 
 const REPORT_TYPE = [
-    '秘境探索'
+    '秘境探索',
 ]
+
+const RESOURCE_TYPE = {
+    money: '銅',
+    wood: '木',
+    wool: '綿',
+    ingot: '鉄',
+    grain: '糧',
+}
+
 
 export default class Report {
     constructor(el) {
@@ -11,24 +20,40 @@ export default class Report {
         if (this.isReport) {
             this.unReaded = el.hasClassName('noread')
             this.url = el.querySelector('a').href.trim()
-            this.ress = {
-                wood: 0,
-                cotton: 0,
-                iron: 0,
-                food: 0,
-                coin: 0,
-                other: '',
-            }
+            this.ress = new Map()
             this.type = el.querySelector('img').alt.trim()
         }
+    }
+
+    _sperator() {
+        return this.type === REPORT_TYPE[0] ? '\t' : ' '
+    }
+    
+    _selector() {
+        return this.type === REPORT_TYPE[0] ? 'p.gettreger' : 'div.got_item'
     }
 
     async readDetial() {
         if (!_.isEmpty(this.url)) {
             const request = await fetch(this.url)
             const bodyText = await request.text()
-            const ifm = createUnique('iframe', 'ixah-report')
+            const ifm = createUnique('iframe', 'ixah-report', false)
             ifm.contentDocument.body.innerHTML = bodyText
+            fetchRess(ifm.contentDocument.querySelector(this._selector())
+        }
+    }
+
+    fetchRess(el) {
+        if (el) {
+            _(el.innerText.trim().split(this._sperator()))
+              .filter(t => t !== '')
+              .slice(1, -1)
+              .each(text => {
+                const ressKey = _.findKey(RESOURCE_TYPE, o => o == text[0])
+                const r = /(\d+)$/.exec(text)
+                const value = _.isArray(r) ? r[0] : 0
+                this.ress.set(ressKey, value) 
+              })
         }
     }
 }
