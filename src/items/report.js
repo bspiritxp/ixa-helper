@@ -17,7 +17,7 @@ const RESOURCE_TYPE = {
 
 export default class Report {
     constructor(el) {
-        this.isReport = el && el.tagName && el.tagName === 'TR'
+        this.isReport = el && el.tagName && el.tagName === 'TR' && el.childElementCount > 3
         if (this.isReport) {
             this.unReaded = el.hasClassName('noread')
             this.url = el.querySelector('a').href.trim()
