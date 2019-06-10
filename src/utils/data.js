@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Village } from 'Items'
-import { query, queryLocGroup } from 'Utils/dom'
+import { query, queryAll, queryLocGroup } from 'Utils/dom'
 
 const locationGroup = _.partial(queryLocGroup, _, cssSelector => new Village(cssSelector))
 
@@ -12,9 +12,11 @@ const myVillages = () => locationGroup('.my_country.village li')
 
 const myFronts = () => locationGroup('.other_country li:not(.head)')
 
+const reports = noReaded => null
+
 export {
-    currentVillage,
-    mainCity,
-    myFronts,
-    myVillages,
+    currentVillage, // current selected village
+    mainCity,       // player's main village
+    myFronts,       // player's fronts
+    myVillages,     // all villages of player
 }
