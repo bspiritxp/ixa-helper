@@ -21,3 +21,7 @@ export const create = (tagName, idName, isShow) => {
     document.body.append(result)
     return result
 }
+
+export const createButton = (idName, addMethod) => {
+    const button = document.createElement('button')
+}
