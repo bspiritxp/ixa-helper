@@ -1,6 +1,6 @@
-import _ from 'lodash'
-import { Village, Report } from '@/items'
-import { query, queryAll, queryLocGroup } from '@/utils/dom'
+import _ from 'lodash';
+import { Village, Report } from '@/items';
+import { query, queryAll, queryLocGroup } from '@/utils/dom';
 
 const locationGroup = (s: string) => queryLocGroup(s, Village)
 

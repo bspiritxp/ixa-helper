@@ -21,3 +21,9 @@ export const create = (tagName: string, idName: string, isShow: boolean = false)
     document.body.append(result)
     return result
 }
+
+export const parseDom = (domStr: string) => {
+    const contanier = document.createElement('div');
+    contanier.innerHTML = domStr
+    return contanier;
+}

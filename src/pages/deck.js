@@ -1,5 +1,5 @@
-import { query } from 'Utils/dom'
-import { currentVillage } from 'Utils/data'
+import { query } from '@/utils/dom'
+import { currentVillage } from '@/utils/data'
 
 const Deck = () => {
     const cv = currentVillage()

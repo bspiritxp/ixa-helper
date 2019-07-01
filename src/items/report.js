@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createUnique } from 'Utils/dom'
+import { createUnique } from '@/utils/dom'
 
 const REPORT_TYPE = [
     '秘境探索',
