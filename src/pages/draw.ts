@@ -77,7 +77,7 @@ const draw = async () => {
                 cardNum = Optional.ofNullable(ifm.contentDocument.querySelector(SELECTOR.CARD_NUMBER))
                     .map(el => cardNums(el.textContent))
                     .get();
-                cardBox.then(box => box.prepend(newCard))
+                cardBox.map(el => el.firstElementChild).then(child => child.after(newCard));
                 afterDraw(cardNum, money);
             }
         }        
@@ -85,7 +85,7 @@ const draw = async () => {
 };
 
 export default (jq$: CallableFunction|null) => {
-    const kujiType = Optional.ofNullable(query(SELECTOR.KUJI_TITLE)).map(el => el.textContent).getOrDefault(KUJI_TYPE.UNKNOWN);
+    const kujiType = Optional.ofNullable(query(SELECTOR.KUJI_TITLE)).map(el => el.textContent).getOrDefault(KUJI_TYPE.UNKNOWN).trim();
     if (kujiType !== KUJI_TYPE.WHITE) return;
     if (jq$) {
         jq$(SELECTOR.KUJI_RESULT_IMG).after(jq$(continueDraw));
@@ -93,7 +93,8 @@ export default (jq$: CallableFunction|null) => {
     } else {
         const container = document.createElement('span');
         container.innerHTML = continueDraw;
-        Optional.ofNullable(query(SELECTOR.KUJI_RESULT_IMG)).then(el => el.after(container));
+        const box = query(SELECTOR.KUJI_RESULT_IMG);
+        Optional.ofNullable(box).then(el => el.after(container));
         Optional.ofNullable(query('button#drawBtn')).then(el => el.addEventListener('click', draw));
     }
 }
