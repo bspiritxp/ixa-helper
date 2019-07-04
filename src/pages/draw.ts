@@ -1,8 +1,8 @@
 import { query, queryAll, createUnique } from '@/utils/dom'
 import { totalMoney } from '@/utils/data'
 import _ from 'lodash'
-import Optional from '@/utils/tool';
-import { parseDom } from '../utils/dom';
+import Optional from '@/utils/tool'
+import { parseDom } from '@/utils/dom'
 
 const continueDraw = `
     <input id="drawLimit" type="number" value="1" min="1" max="10" size="3" style="width: 3rem" />
@@ -71,7 +71,7 @@ const draw = async () => {
             if (ifm.contentDocument) {
                 ifm.contentDocument.body.innerHTML = content;
                 const newCard = <HTMLElement>ifm.contentDocument.querySelector(SELECTOR.CARD_RESULT);
-                newCard.prepend(parseDom(`<h3>第${i+1}枚</h3>`));
+                newCard.prepend(parseDom(`<p><b>第${i+1}枚</b></p>`));
                 money = Optional.ofNullable(ifm.contentDocument.querySelector(SELECTOR.MONEY_BOX))
                     .map((el: { textContent: string|null; }) => el.textContent)
                     .map((content: string) => Number(content))

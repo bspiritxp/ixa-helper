@@ -1,4 +1,4 @@
-import Router from '@/pages';
+import Router from './pages';
 
 const currentPath = location.pathname;
 const pageMethod = Router[currentPath];

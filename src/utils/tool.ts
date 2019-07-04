@@ -1,7 +1,7 @@
 import { isNullOrUndefined } from "util";
 
 interface Emptyable {
-    isEmpty?(): boolean
+    isEmpty?: () => boolean
 }
 
 interface IOptional<T> {
