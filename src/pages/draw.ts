@@ -2,11 +2,10 @@ import { query, queryAll, createUnique } from '@/utils/dom'
 import { totalMoney } from '@/utils/data'
 import _ from 'lodash'
 import Optional from '@/utils/tool'
-import { parseDom } from '@/utils/dom'
+import { parseDom, create } from '@/utils/dom'
 
 const continueDraw = `
     <input id="drawLimit" type="number" value="1" min="1" max="10" size="3" style="width: 3rem" />
-    <button id='drawBtn' style="padding: 0.5rem">Draw</button>
 `;
 
 enum KUJI_TYPE {
@@ -88,17 +87,20 @@ const draw = async () => {
     }
 };
 
-export default (jq$: CallableFunction|null) => {
+const initDrawBtn = (container: HTMLSpanElement) => {
+    const btn = create('button', 'drawBtn');
+    btn.style.cssText = 'padding: 0.5rem';
+    btn.textContent = 'Draw';
+    btn.onclick = draw
+    container.appendChild(btn);
+}
+
+export default () => {
     const kujiType = Optional.ofNullable(query(SELECTOR.KUJI_TITLE)).map((el: { textContent: string|null; }) => el.textContent).getOrDefault(KUJI_TYPE.UNKNOWN).trim();
     if (kujiType !== KUJI_TYPE.WHITE) return;
-    if (jq$) {
-        jq$(SELECTOR.KUJI_RESULT_IMG).after(jq$(continueDraw));
-        jq$('button#drawBtn').on('click', draw);
-    } else {
-        const container = document.createElement('span');
-        container.innerHTML = continueDraw;
-        const box = query(SELECTOR.KUJI_RESULT_IMG);
-        Optional.ofNullable(box).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
-        Optional.ofNullable(query('button#drawBtn')).then((el: { addEventListener: (arg0: string, arg1: () => Promise<void>) => void; }) => el.addEventListener('click', draw));
-    }
+    const container = document.createElement('span');
+    container.innerHTML = continueDraw;
+    const box = query(SELECTOR.KUJI_RESULT_IMG);
+    Optional.ofNullable(box).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
+    initDrawBtn(container);
 }

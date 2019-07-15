@@ -17,9 +17,19 @@ export const create = (tagName: string, idName: string, isShow: boolean = false)
     return result
 }
 
-export const createAdd = _.flow([create, document.body.append])
+const appendBody = (el: HTMLElement) => { 
+    document.body.append(el);
+    return el;
+}
 
-export const createAddTop = _.flow([create, document.body.prepend])
+const prependBody = (el: HTMLElement) => { 
+    document.body.prepend(el);
+    return el;
+}
+
+export const createAdd = _.flow([create, appendBody])
+
+export const createAddTop = _.flow([create, prependBody])
 
 export const createUnique = (tagName: string, idName: string, isShow: boolean = false) => {
     let result = query(`${tagName}#${idName}`)

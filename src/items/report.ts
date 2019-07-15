@@ -17,6 +17,7 @@ const RESOURCE_TYPE = {
 
 
 export default class Report {
+    dom: HTMLTableRowElement | null = null
     type: string = ''
     isReport: boolean = false
     unReaded: boolean = false
@@ -24,6 +25,7 @@ export default class Report {
     ress = new Map()
 
     constructor(el: HTMLElement) {
+        this.dom = <HTMLTableRowElement>el
         this.isReport = Boolean(el && el.tagName && el.tagName === 'TR' && el.childElementCount > 3)
         if (this.isReport) {
             this.unReaded = el.classList.contains('noread')
@@ -32,16 +34,19 @@ export default class Report {
         }
     }
 
-    _sperator() {
-        return this.type === REPORT_TYPE.DISCOVERY ? '\t' : ' '
-    }
+    // _sperator() {
+    //     return this.type === REPORT_TYPE.DISCOVERY ? ' ' : '\t'
+    // }
     
     _selector() {
         return this.type === REPORT_TYPE.DISCOVERY ? 'p.gettreger' : 'div.got_item'
     }
 
     async readDetial() {
+        if (this.dom === null) return;
         if (!_.isEmpty(this.url)) {
+            const firstTd = <HTMLElement>this.dom.firstElementChild
+            if (firstTd) firstTd.style.backgroundColor = '#990000';
             const request = await fetch(this.url)
             const bodyText = await request.text()
             const ifm = <HTMLIFrameElement>createUnique('iframe', 'ixah-report', false)
@@ -49,20 +54,23 @@ export default class Report {
               .then(ifmDocument => {
                 ifmDocument.body.innerHTML = bodyText
                 Optional.ofNullable(<HTMLElement>ifmDocument.querySelector(this._selector()))
-                    .then(this.fetchRess)
-              });
+                    .then(this.fetchRess.bind(this))
+            });
+            if (firstTd) firstTd.style.backgroundColor = '#fff';
         }
     }
 
     fetchRess(el: HTMLElement) {
-        _(el.innerText.trim().split(this._sperator()))
-            .filter(t => t !== '')
+        _(el.innerText.trim().split(' '))
+            .filter(t => t.trim() !== '')
             .slice(1, -1)
             .each(text => {
                 const ressKey = _.findKey(RESOURCE_TYPE, o => o == text[0])
-                const r = /(\d+)$/.exec(text)
-                const value = _.isArray(r) ? r[0] : 0
-                this.ress.set(ressKey, value) 
+                if (ressKey) {
+                    const r = /(\d+)$/.exec(text)
+                    const value = _.isArray(r) ? r[0] : 0
+                    this.ress.set(_.get(RESOURCE_TYPE, ressKey), Number(value))
+                }
             })
     }
 }

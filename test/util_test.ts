@@ -12,8 +12,9 @@ function testOpional() {
     console.log(r1);
 }
 
-function testEnumKeyBySymble() {
-
+function testSplitText() {
+    const testStr1 = '戦利品「  木材210  綿210  鉄210  糧210 」を獲得しました';
+    const testStr2 = '戦利品「  鉄2160 」を獲得しました';
 }
 
-testEnumKeyBySymble()
+testSplitText()

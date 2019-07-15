@@ -43,16 +43,17 @@ class Optional<T> implements IOptional<T> {
         return isNullOrUndefined(r) ? Optional.empty() : Optional.of(<NonNullable<R>>r);
     }
     then(method: (o: NonNullable<T>) => void) {
-        if (isNullOrUndefined(this.o) || this.isEmpty()) throw new Error("value not resolved.");
+        if (isNullOrUndefined(this.o) || this.isEmpty()) return;
         method(<NonNullable<T>>this.o);
     }
     isEmpty(): boolean {
+        if (isNullOrUndefined(this.o)) return true;
         const emptyMethod = (<Emptyable>this.o).isEmpty;
-        return isNullOrUndefined(this.o) || !isNullOrUndefined(emptyMethod) && emptyMethod();
+        return !isNullOrUndefined(emptyMethod) && emptyMethod();
     }
     get(): T {
-        if (isNullOrUndefined(this.o)) throw new Error("factor is null or undefined.");
-        return this.o;
+        if (this.isEmpty()) throw new Error("factor is null or undefined.");
+        return <T>this.o;
     }
     getOrDefault(d: NonNullable<T>): NonNullable<T> {
         return this.isEmpty() ? d : <NonNullable<T>>this.o;
