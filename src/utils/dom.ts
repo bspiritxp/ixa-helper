@@ -43,3 +43,10 @@ export const parseDom = (domStr: string) => {
     return contanier;
 }
 
+export const setCss = (el: HTMLElement, css: {[key: string]: string}) => {
+    let cssText = ''
+    _.forOwn(css, (value, key) => {
+        cssText += `${key}: ${value};`
+    })
+    el.style.cssText = cssText
+}

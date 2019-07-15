@@ -69,7 +69,7 @@ export default class Report {
                 if (ressKey) {
                     const r = /(\d+)$/.exec(text)
                     const value = _.isArray(r) ? r[0] : 0
-                    this.ress.set(_.get(RESOURCE_TYPE, ressKey), Number(value))
+                    this.ress.set(ressKey, Number(value))
                 }
             })
     }

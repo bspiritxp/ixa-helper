@@ -2,6 +2,7 @@ import Deck from './deck'
 import Report from './report'
 import Mapping from './map'
 import Draw from './draw'
+import Trade from './trade'
 
 const emptyHandler = () => null;
 
@@ -15,5 +16,6 @@ const router: Router = {
     '/map.php': Mapping,
     '/senkuji/senkuji_result.php': Draw,
     '/card/status_info.php': emptyHandler,
+    '/card/trade.php': Trade,
 }
 export default router;

@@ -1,11 +1,11 @@
 import { reports } from '@/utils/data'
-import { create, query, createUnique } from '@/utils/dom'
+import { create, query, createUnique, setCss } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { Report } from '@/items'
+import { Report, Icons } from '@/items'
 import _ from 'lodash';
 
 const BUTTON_ID = 'sumRessBtn'
-const BUTTON_STYLE = 'width: 7rem;height: 18px;font-size: 11px'
+const BUTTON_STYLE = 'width: 5rem;height: 18px;font-size: 11px;'
 
 enum SELECTOR {
     BTN_CONTANIER = 'form ul:nth-of-type(2) li:first-of-type',
@@ -18,9 +18,9 @@ interface RessResult {
 function showRessResult(result: RessResult, rBox: HTMLSpanElement) {
     const raw: string[] = []
     Object.keys(result).forEach((k: string) => {
-        raw.push(`<strong>${k}</strong>: ${result[k]}`)
+        raw.push(`${Icons[k]}&nbsp;${result[k]}`)
     })
-    rBox.innerHTML = raw.join(',&nbsp;')
+    rBox.innerHTML = raw.join('&nbsp;|&nbsp;')
 }
 
 async function sumReport(e: Event) {
@@ -28,7 +28,16 @@ async function sumReport(e: Event) {
     const rBox = createUnique('span', 'ressResult', true)
     Optional.ofNullable(query(SELECTOR.BTN_CONTANIER)).then(box => box.append(rBox))
     rBox.textContent = ''
-    rBox.style.cssText = 'margin-left: 2rem; display: inline-block; border: 1px dashed #333; border-raduis: 5px;text-align: center;padding: .5rem'
+    setCss(rBox, {
+        'margin-left': '5px',
+        'display': 'inline-flex',
+        'border': '1px solid #333',
+        'border-radius': '.5rem',
+        'padding': '.5rem',
+        'align-items': 'center',
+        'background-color': '#000',
+        'color': '#fff',
+    })
     reports().value().forEach(async (r: Report) => {
         await r.readDetial()
         r.ress.forEach((v: number, k: string) => {
