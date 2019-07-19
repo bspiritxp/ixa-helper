@@ -30,7 +30,7 @@ const afterDraw = (cardNum: number, money: number) => {
     const moneyEL = <HTMLElement>query(SELECTOR.MONEY_BOX);
     const cardStockEL = <HTMLElement>query(SELECTOR.CARD_STOCK);
     if (cardNumberEL && moneyEL && cardStockEL) {
-        cardNumberEL.innerText = cardNum.toString();
+        cardNumberEL.innerText = `${cardNum}枚`;
         moneyEL.innerText = money.toString();
         let [cn, tn] = _.map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()));
         cn = tn - cardNum;

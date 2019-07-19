@@ -5,7 +5,11 @@ import { Report, Icons } from '@/items'
 import _ from 'lodash';
 
 const BUTTON_ID = 'sumRessBtn'
-const BUTTON_STYLE = 'width: 5rem;height: 18px;font-size: 11px;'
+const BUTTON_STYLE = {
+    'width': '5rem',
+    'height': '18px',
+    'font-size': '11px',
+} as const
 
 enum SELECTOR {
     BTN_CONTANIER = 'form ul:nth-of-type(2) li:first-of-type',
@@ -53,7 +57,7 @@ function createButton() {
     const button = create('button', BUTTON_ID, true)
     button.onclick = sumReport
     button.textContent = '统计资源'
-    button.style.cssText = BUTTON_STYLE
+    setCss(button, BUTTON_STYLE)
 
     Optional.ofNullable(query(SELECTOR.BTN_CONTANIER))
         .then(box => box.append(button))

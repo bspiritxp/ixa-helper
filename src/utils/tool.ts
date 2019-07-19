@@ -39,8 +39,13 @@ class Optional<T> implements IOptional<T> {
     }
     map<R>(method: (o: NonNullable<T>) => R): Optional<R> {
         if (isNullOrUndefined(this.o)) return Optional.empty();
-        const r = method(<NonNullable<T>>this.o);
-        return isNullOrUndefined(r) ? Optional.empty() : Optional.of(<NonNullable<R>>r);
+        try {
+            const r = method(<NonNullable<T>>this.o);
+            return isNullOrUndefined(r) ? Optional.empty() : Optional.of(<NonNullable<R>>r);
+        } catch(err) {
+            console.warn(err);
+        }
+        return Optional.empty();
     }
     then(method: (o: NonNullable<T>) => void) {
         if (isNullOrUndefined(this.o) || this.isEmpty()) return;
