@@ -3,9 +3,9 @@ import Optional from "@/utils/tool";
 const MAX_HP = 100;
 const MAX_LEVEL = 20;
 const MAX_RANK = 7;
-const RANK_STAR_CODE = String.fromCharCode(9733);   // ★
+const RANK_STAR = String.fromCharCode(9733);   // ★
 
-enum Rarity { '天', '極', '特', '上', '序', '他' }
+enum Rarity { '天', '極', '特', '上', '序', '化', '童' }
 
 enum ArmSuit {
     SSS =/**   */1.25,
@@ -45,6 +45,7 @@ interface Card {
     skills: string[];
     queryBar?: number;
     hp?: number;
+    el: HTMLElement;
 }
 
 declare var Card: {
@@ -55,6 +56,7 @@ declare var Card: {
 interface TradeCard extends Card {
     price: number;
     canBuy: boolean;
+    el: HTMLTableRowElement;
 }
 
 declare var TradeCard: {
@@ -64,6 +66,7 @@ declare var TradeCard: {
 
 function ofTrade(el: HTMLTableRowElement): TradeCard {
     const card = new TradeCard();
+    card.el = el;
     Optional.ofNullable(el.children[0].textContent).map(no => Number(no)).then(r => card.no = r)
     Optional.ofNullable(el.children[1].children[0])
         .filter(el => el.tagName == 'img')
@@ -72,4 +75,14 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
         .then(rare => card.rarity = rare)
     Optional.ofNullable(el.children[2])
     return card;
+}
+
+export {
+    Rarity,
+    Card,
+    TradeCard,
+    ofTrade,
+    RareName,
+    ArmSuit,
+    ArmSuitLevel,
 }

@@ -38,7 +38,7 @@ const afterDraw = (cardNum: number, money: number) => {
     }
 }
 
-const cardNums = (text: string|null) => text ? Number(text.substr(0, text.length - 1)) : 0
+const cardNums = (text: string|null) => text ? Number(text.replace('枚', '')) : 0;
 
 
 const kujiForm = document.forms.namedItem(SELECTOR.FORM_NAME);

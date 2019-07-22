@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-export const query = (s: string) => document.querySelector(s)
-export const queryAll = (s: string) => document.querySelectorAll(s)
+export const query = (s: string, doc = document) => doc.querySelector(s)
+export const queryAll = (s: string, doc = document) => doc.querySelectorAll(s)
 
 // 从dom中查询位置信息
 export const queryLocGroup = <T>(selector: string, ItemClass: {new(e: Element): T}) => {
@@ -49,4 +49,13 @@ export const setCss = (el: HTMLElement, css: {[key: string]: string}) => {
         cssText += `${key}: ${value};`
     })
     el.style.cssText = cssText
+}
+
+export const getAbsolutePos = (el: HTMLElement, topOrLeft: 'Top' | 'Left' = 'Top', initValue = 0): number => {
+    const thisPos = (topOrLeft === 'Top' ? el.offsetTop : el.offsetLeft) as number + initValue;
+    const parent = el.parentElement;
+    if (parent && parent.tagName !== 'HTML') {
+        return getAbsolutePos(parent, topOrLeft, thisPos);
+    }
+    return thisPos;
 }
