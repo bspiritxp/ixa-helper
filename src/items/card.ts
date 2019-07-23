@@ -48,10 +48,7 @@ interface Card {
     el: HTMLElement;
 }
 
-declare var Card: {
-    prototype: Card;
-    new(): Card;
-}
+class Card implements Card {}
 
 interface TradeCard extends Card {
     price: number;
@@ -59,13 +56,10 @@ interface TradeCard extends Card {
     el: HTMLTableRowElement;
 }
 
-declare var TradeCard: {
-    prototype: TradeCard;
-    new(): TradeCard;
-}
+class TradeCard implements TradeCard {}
 
 function ofTrade(el: HTMLTableRowElement): TradeCard {
-    const card = new TradeCard();
+    const card: TradeCard = new TradeCard();
     card.el = el;
     Optional.ofNullable(el.children[0].textContent).map(no => Number(no)).then(r => card.no = r)
     Optional.ofNullable(el.children[1].children[0])

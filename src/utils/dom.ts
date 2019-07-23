@@ -51,11 +51,12 @@ export const setCss = (el: HTMLElement, css: {[key: string]: string}) => {
     el.style.cssText = cssText
 }
 
-export const getAbsolutePos = (el: HTMLElement, topOrLeft: 'Top' | 'Left' = 'Top', initValue = 0): number => {
-    const thisPos = (topOrLeft === 'Top' ? el.offsetTop : el.offsetLeft) as number + initValue;
-    const parent = el.parentElement;
-    if (parent && parent.tagName !== 'HTML') {
-        return getAbsolutePos(parent, topOrLeft, thisPos);
+export const getAbsolutePos = (el: HTMLElement, initValue: {x: number, y: number} = {x: 0, y: 0}): {x: number, y: number} => {
+    const thisPos = {x: initValue.x + el.offsetLeft, y: initValue.y + el.offsetTop}
+    console.log(el.tagName, thisPos);
+    const parent = el.offsetParent;
+    if (parent && parent.tagName !== 'BODY') {
+        return getAbsolutePos(parent as HTMLElement, thisPos);
     }
     return thisPos;
 }

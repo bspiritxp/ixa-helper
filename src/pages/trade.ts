@@ -10,7 +10,7 @@ enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
     IMG_RARTY_CARD = 'table img[alt=${rareName}]',
     LAST_PAGE_HREF = 'a[title="last page"]',
-    NEXT_PAGE = '.last a:nth-of-type(1)',
+    NEXT_PAGE = '.pager .last a:nth-of-type(1)',
     CARD_TABLE = '.common_table1',
 }
 
@@ -33,20 +33,19 @@ const FilterBox = () => {
       <div><button type="button">检索</button></div>
     `
     Optional.ofNullable(query(SELECTOR.FORM_BOX)).then(box => box.append(boxDiv));
-    const {top, left} = {
-        top: getAbsolutePos(boxDiv, 'Top'),
-        left: getAbsolutePos(boxDiv, 'Left'),
-    }
+    const position = boxDiv.getClientRects()[0] || getAbsolutePos(boxDiv);
     boxDiv.onclick = e => {
         const target = e.target as HTMLElement;
-        console.log(top, left);
         switch (target.tagName.toLowerCase()) {
             case 'img':
                 if (!iconBox.isShow) {
-                    iconBox.show(left, top - iconBox.offsetHeight);
+                    iconBox.show(position.left - 10, position.top - iconBox.offsetHeight);
                 }
                 break;
-        
+            case 'button':
+                if (iconBox.isShow) return;
+                searchBy(iconBox.value).then(() => console.log('search done.'));
+                break;
             default:
                 break;
         }
@@ -74,7 +73,7 @@ function findCardBy(rareName: RareName, doc = document): TradeCard[] {
     const r = _.chain(queryAll(SELECTOR.IMG_RARTY_CARD.replace('${rareName}', rareName), doc))
         .map(el => 
             Optional.ofNullable(el.parentElement)
-            .map(el => ofTrade(el.parentElement as HTMLTableRowElement)).get())
+            .map(elp => ofTrade(elp.parentElement as HTMLTableRowElement)).get())
         .value();
     return r;
 }
@@ -111,15 +110,22 @@ function nextPage(ifrm: HTMLIFrameElement, mainDoc=true) {
 
 const renderFoundCards = _.flow([findCardBy, render]);
 
-async function searchBy(rare: Rarity) {
+function clearTableList() {
+    Optional.ofNullable(query(SELECTOR.CARD_TABLE))
+        .then(table => table.querySelectorAll('tr:not(.middle)').forEach(row => row.remove()));
+}
+
+async function searchBy(rare: Rarity|null) {
+    if (_.isNull(rare)) return;
     const rareName = Rarity[rare] as RareName;
     const ifrm = createUnique('iframe', 'cardPage', false);
     ifrm.onload = () => {
         renderFoundCards(rareName, ifrm.contentDocument);
-        nextPage(ifrm, false);
+        setTimeout(() => nextPage(ifrm, false), 100);
     }
     const pageSize = getLastPage();
     if (rareName && pageSize > 1) {
+        clearTableList();
         // start search by current page
         renderFoundCards(rareName);
         nextPage(ifrm);

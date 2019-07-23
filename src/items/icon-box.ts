@@ -8,9 +8,9 @@ const ICON_MAGIN = 5;
 
 class IconBox {
     private _el: HTMLDivElement;
-    private _value: number = 0;
+    private _value: number|null = null;
     private icons: HTMLDivElement[];
-    onChanged: ((oldValue: HTMLImageElement, newValue: HTMLImageElement) => void) | null;
+    onChanged: ((oldValue: HTMLImageElement|null, newValue: HTMLImageElement) => void) | null;
     constructor(icons: HTMLDivElement[]) {
         this.icons = icons;
         this.onChanged = null;
@@ -33,7 +33,7 @@ class IconBox {
         });
         setCss(this._el, {
             display: 'grid',
-            width: `${SINGLE_ICON_SIZE * 3 + 10 + ICON_MAGIN}px`,
+            width: `${SINGLE_ICON_SIZE * 3 + ICON_MAGIN * 4}px`,
             position: 'absolute',
             border: '1px solid #fff',
             visibility: 'hidden',
@@ -57,14 +57,15 @@ class IconBox {
         return this._el;
     }
     
-    public get value(): Rarity {
+    public get value(): Rarity|null {
+        if (_.isNull(this._value)) return null;
         const key = (this.icons[this._value].firstElementChild as HTMLImageElement).getAttribute('alt') as RareName;
         return Rarity[key];
     }
 
     select(index: number) {
         if (index < 0 || index >= this.icons.length) return;
-        const oldValue = this.icons[this._value].firstElementChild as HTMLImageElement;
+        const oldValue = _.isNull(this._value) ? null : this.icons[this._value].firstElementChild as HTMLImageElement;
         this._value = index
         const newValue = this.icons[this._value].firstElementChild as HTMLImageElement;
         if (this.onChanged) {
@@ -73,8 +74,8 @@ class IconBox {
     }
 
     show(x: number, y: number) {
-        this._el.style.top = `${x}px`;
-        this._el.style.left = `${y}px`;
+        this._el.style.top = `${y}px`;
+        this._el.style.left = `${x}px`;
         this._el.style.visibility = 'visible';
     }
 
