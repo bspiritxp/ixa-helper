@@ -31,6 +31,16 @@ class IconBox {
             }
             this._el.append(v);
         });
+        const closeButton = create('div', 'closeBox', true);
+        closeButton.textContent = '×';
+        closeButton.onclick = this.close.bind(this);
+        setCss(closeButton, {
+            color: '#333',
+            'font-weight': 'bold',
+            'font-size': '16px',
+            cursor: 'pointer'
+        })
+        this._el.append(closeButton);
         setCss(this._el, {
             display: 'grid',
             width: `${SINGLE_ICON_SIZE * 3 + ICON_MAGIN * 4}px`,

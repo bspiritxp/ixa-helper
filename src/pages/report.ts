@@ -30,7 +30,7 @@ function showRessResult(result: RessResult, rBox: HTMLSpanElement) {
 async function sumReport(e: Event) {
     const totalRess: RessResult = { }
     const rBox = createUnique('span', 'ressResult', true)
-    Optional.ofNullable(query(SELECTOR.BTN_CONTANIER)).then(box => box.append(rBox))
+    query(SELECTOR.BTN_CONTANIER).then(box => box.append(rBox))
     rBox.textContent = ''
     setCss(rBox, {
         'margin-left': '5px',
@@ -59,7 +59,7 @@ function createButton() {
     button.textContent = '统计资源'
     setCss(button, BUTTON_STYLE)
 
-    Optional.ofNullable(query(SELECTOR.BTN_CONTANIER))
+    query(SELECTOR.BTN_CONTANIER)
         .then(box => box.append(button))
 }
 

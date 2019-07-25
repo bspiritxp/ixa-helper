@@ -26,16 +26,14 @@ enum SELECTOR {
 }
 
 const afterDraw = (cardNum: number, money: number) => {
-    const cardNumberEL = <HTMLElement>query(SELECTOR.CARD_NUMBER);
-    const moneyEL = <HTMLElement>query(SELECTOR.MONEY_BOX);
-    const cardStockEL = <HTMLElement>query(SELECTOR.CARD_STOCK);
-    if (cardNumberEL && moneyEL && cardStockEL) {
-        cardNumberEL.innerText = `${cardNum}枚`;
-        moneyEL.innerText = money.toString();
-        let [cn, tn] = _.map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()));
-        cn = tn - cardNum;
-        cardStockEL.innerText = `${cn} / ${tn}`;
-    }
+    const cardNumberEL = query(SELECTOR.CARD_NUMBER).get();
+    const moneyEL = query(SELECTOR.MONEY_BOX).get();
+    const cardStockEL = query(SELECTOR.CARD_STOCK).get();
+    cardNumberEL.innerText = `${cardNum}枚`;
+    moneyEL.innerText = money.toString();
+    let [cn, tn] = _.map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()));
+    cn = tn - cardNum;
+    cardStockEL.innerText = `${cn} / ${tn}`;
 }
 
 const cardNums = (text: string|null) => text ? Number(text.replace('枚', '')) : 0;
@@ -43,14 +41,14 @@ const cardNums = (text: string|null) => text ? Number(text.replace('枚', '')) :
 
 const kujiForm = document.forms.namedItem(SELECTOR.FORM_NAME);
 const draw = async () => {
-    const limit = Optional.ofNullable(query('input#drawLimit'))
+    const limit = query('input#drawLimit')
                     .map((el: Element) => Number((<HTMLInputElement>el).value))
                     .getOrDefault(1);
     const ifm = <HTMLIFrameElement>createUnique('iframe', 'cardResult', false);
-    const cardBox = Optional.ofNullable(<HTMLElement>query(SELECTOR.CARD_BOX));
+    const cardBox = query(SELECTOR.CARD_BOX);
     if (kujiForm) {
         let money = totalMoney();
-        let cardNum = Optional.ofNullable(<HTMLElement>query(SELECTOR.CARD_NUMBER))
+        let cardNum = query(SELECTOR.CARD_NUMBER)
             .map((el: { textContent: any; }) => el.textContent)
             .map((raw: string) => cardNums(raw))
             .get();
@@ -96,11 +94,10 @@ const initDrawBtn = (container: HTMLSpanElement) => {
 }
 
 export default () => {
-    const kujiType = Optional.ofNullable(query(SELECTOR.KUJI_TITLE)).map((el: { textContent: string|null; }) => el.textContent).getOrDefault(KUJI_TYPE.UNKNOWN).trim();
+    const kujiType = query(SELECTOR.KUJI_TITLE).map((el: { textContent: string|null; }) => el.textContent).getOrDefault(KUJI_TYPE.UNKNOWN).trim();
     if (kujiType !== KUJI_TYPE.WHITE) return;
     const container = document.createElement('span');
     container.innerHTML = continueDraw;
-    const box = query(SELECTOR.KUJI_RESULT_IMG);
-    Optional.ofNullable(box).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
+    query(SELECTOR.KUJI_RESULT_IMG).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
     initDrawBtn(container);
 }

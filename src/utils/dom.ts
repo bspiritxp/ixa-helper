@@ -1,12 +1,14 @@
 import _ from 'lodash'
+import Optional from './tool';
+import { Village } from '@/items';
 
-export const query = (s: string, doc = document) => doc.querySelector(s)
-export const queryAll = (s: string, doc = document) => doc.querySelectorAll(s)
+export const query = (s: string, doc: Document|HTMLElement = document) => Optional.ofNullable(doc.querySelector(s) as HTMLElement|null)
+export const queryAll = (s: string, doc: Document|HTMLElement = document) => doc.querySelectorAll(s)
 
 // 从dom中查询位置信息
-export const queryLocGroup = <T>(selector: string, ItemClass: {new(e: Element): T}) => {
-    const items: T[] = []
-    queryAll(selector).forEach(el => items.push(new ItemClass(el)))
+export const queryLocGroup = (selector: string) => {
+    const items: Village[] = []
+    queryAll(selector).forEach(el => items.push(new Village(Optional.of(el as HTMLElement))));
     return new Set(items)
 }
 
@@ -31,10 +33,8 @@ export const createAdd = _.flow([create, appendBody])
 
 export const createAddTop = _.flow([create, prependBody])
 
-export const createUnique = (tagName: string, idName: string, isShow: boolean = false) => {
-    let result = query(`${tagName}#${idName}`)
-    if (result) return result
-    return createAdd(tagName, idName, isShow)
+export const createUnique = (tagName: string, idName: string, isShow: boolean = false): HTMLElement => {
+    return query(`${tagName}#${idName}`).getOrElse(() => createAdd(tagName, idName, isShow));
 }
 
 export const parseDom = (domStr: string) => {
@@ -51,8 +51,10 @@ export const setCss = (el: HTMLElement, css: {[key: string]: string}) => {
     el.style.cssText = cssText
 }
 
-export const getAbsolutePos = (el: HTMLElement, initValue: {x: number, y: number} = {x: 0, y: 0}): {x: number, y: number} => {
-    const thisPos = {x: initValue.x + el.offsetLeft, y: initValue.y + el.offsetTop}
+type Pos = {left: number, top: number}
+
+export const getAbsolutePos = (el: HTMLElement, initValue: Pos = {left: 0, top: 0}): Pos => {
+    const thisPos = {left: initValue.left + el.offsetLeft, top: initValue.top + el.offsetTop}
     console.log(el.tagName, thisPos);
     const parent = el.offsetParent;
     if (parent && parent.tagName !== 'BODY') {

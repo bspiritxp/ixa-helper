@@ -9,5 +9,5 @@ console.info('ixa plugin on', jq$ ? 'with jquery' : '');
 
 if (pageMethod) {
   pageMethod(jq$);
-  console.info('page helper on');
+  // console.info('page helper on');
 }

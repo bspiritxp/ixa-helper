@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { Village, Report } from '@/items';
 import { query, queryAll, queryLocGroup } from '@/utils/dom';
 
-const locationGroup = (s: string) => queryLocGroup(s, Village)
+const locationGroup = (s: string) => queryLocGroup(s)
 
 const currentVillage = () => new Village(query('li.on[data-village_id]'))
 
@@ -15,8 +15,7 @@ const myFronts = () => locationGroup('.other_country li:not(.head)')
 const reports = () => _.chain(queryAll('table.p_report tr:not(:nth-child(1))')).map(el => new Report(<HTMLElement>el))
 
 const totalMoney = () => {
-    const el = query('.money_b')
-    return el ? Number(el.textContent) : 0
+    return query('.money_b').map(el => el.textContent as number|null).getOrDefault(0)
 }
 
 export {
