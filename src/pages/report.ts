@@ -1,37 +1,36 @@
-import { reports } from '@/utils/data'
-import { create, query, createUnique, setCss } from '@/utils/dom'
-import Optional from '@/utils/tool'
-import { Report, Icons } from '@/items'
+import { Icons, Report } from '@/items';
+import { reports } from '@/utils/data';
+import { create, createUnique, query, setCss } from '@/utils/dom';
 import _ from 'lodash';
 
-const BUTTON_ID = 'sumRessBtn'
+const BUTTON_ID = 'sumRessBtn';
 const BUTTON_STYLE = {
     'width': '5rem',
     'height': '18px',
     'font-size': '11px',
-} as const
+} as const;
 
 enum SELECTOR {
     BTN_CONTANIER = 'form ul:nth-of-type(2) li:first-of-type',
 }
 
 interface RessResult {
-    [key: string]: number
+    [key: string]: number;
 }
 
 function showRessResult(result: RessResult, rBox: HTMLSpanElement) {
-    const raw: string[] = []
+    const raw: string[] = [];
     Object.keys(result).forEach((k: string) => {
-        raw.push(`${Icons[k]}&nbsp;${result[k]}`)
-    })
-    rBox.innerHTML = raw.join('&nbsp;|&nbsp;')
+        raw.push(`${Icons[k]}&nbsp;${result[k]}`);
+    });
+    rBox.innerHTML = raw.join('&nbsp;|&nbsp;');
 }
 
 async function sumReport(e: Event) {
-    const totalRess: RessResult = { }
-    const rBox = createUnique('span', 'ressResult', true)
-    query(SELECTOR.BTN_CONTANIER).then(box => box.append(rBox))
-    rBox.textContent = ''
+    const totalRess: RessResult = { };
+    const rBox = createUnique('span', 'ressResult', true);
+    query(SELECTOR.BTN_CONTANIER).then(box => box.append(rBox));
+    rBox.textContent = '';
     setCss(rBox, {
         'margin-left': '5px',
         'display': 'inline-flex',
@@ -41,29 +40,29 @@ async function sumReport(e: Event) {
         'align-items': 'center',
         'background-color': '#000',
         'color': '#fff',
-    })
+    });
     reports().value().forEach(async (r: Report) => {
-        await r.readDetial()
+        await r.readDetial();
         r.ress.forEach((v: number, k: string) => {
-            if (!_.has(totalRess, k)) totalRess[k] = 0
-            totalRess[k] += Number(v)
-        })
-        showRessResult(totalRess, rBox)
-    })
-    e.preventDefault()
+            if (!_.has(totalRess, k)) { totalRess[k] = 0; }
+            totalRess[k] += Number(v);
+        });
+        showRessResult(totalRess, rBox);
+    });
+    e.preventDefault();
 }
 
 function createButton() {
-    const button = create('button', BUTTON_ID, true)
-    button.onclick = sumReport
-    button.textContent = '统计资源'
-    setCss(button, BUTTON_STYLE)
+    const button = create('button', BUTTON_ID, true);
+    button.onclick = sumReport;
+    button.textContent = '统计资源';
+    setCss(button, BUTTON_STYLE);
 
     query(SELECTOR.BTN_CONTANIER)
-        .then(box => box.append(button))
+        .then(box => box.append(button));
 }
 
 export default () => {
     // add button to page
-    createButton()
-}
+    createButton();
+};

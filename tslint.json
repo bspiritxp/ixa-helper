@@ -4,6 +4,12 @@
         "tslint:recommended"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "interface-name": false,
+        "max-classes-per-file": false,
+        "quotemark": false,
+        "object-literal-sort-keys":false,
+        "arrow-parens": [true, "ban-single-arg-parens"]
+    },
     "rulesDirectory": []
 }

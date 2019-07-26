@@ -1,14 +1,13 @@
-import { query } from '@/utils/dom'
-import { currentVillage } from '@/utils/data'
-import Optional from '@/utils/tool';
+import { currentVillage } from '@/utils/data';
+import { query } from '@/utils/dom';
 
 const Deck = () => {
-    const cv = currentVillage()
-    if (cv.id === null) return
+    const cv = currentVillage();
+    if (cv.id === null) { return; }
     query('select#select_village')
       .map(el => el as HTMLInputElement)
       .filter(el => el.value === '' )
-      .then(partLocation => partLocation.value = cv.id ? cv.id.toString() : '')
-}
+      .then(partLocation => partLocation.value = cv.id ? cv.id.toString() : '');
+};
 
-export default Deck
+export default Deck;

@@ -1,9 +1,9 @@
-import Village from './village'
-import Report from './report'
-import Icons from './icons'
+import Icons from './icons';
+import Report from './report';
+import Village from './village';
 
 export {
     Village,
     Report,
     Icons,
-}
+};

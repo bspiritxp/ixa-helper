@@ -5,6 +5,7 @@ const pageMethod = Router[currentPath];
 const jqObjName = ['j213$', 'j$', 'jQuery', '$$', '$'].filter(key => window.hasOwnProperty(key))[0];
 const jqueryDesc = Object.getOwnPropertyDescriptor(window, jqObjName);
 const jq$ = jqueryDesc ? jqueryDesc.value : null;
+// tslint:disable-next-line:no-console
 console.info('ixa plugin on', jq$ ? 'with jquery' : '');
 
 if (pageMethod) {

@@ -1,5 +1,6 @@
+// tslint:disable:max-line-length
 interface IconSet {
-    [key: string]: string
+    [key: string]: string;
 }
 
 const Icons: IconSet = {
@@ -11,6 +12,6 @@ const Icons: IconSet = {
     icon_goku: '<img src="https://cache.sengokuixa.jp/world/img/card/icon/icon_goku.png" alt="極" width="30" height="30" class="middle mr5">',
     icon_ten: '<img src="https://cache.sengokuixa.jp/world/img/card/icon/icon_ten.png" alt="天" width="30" height="30" class="middle mr5">',
     icon_toku: '<img src="https://cache.sengokuixa.jp/world/img/card/icon/icon_toku.png" alt="特" width="30" height="30" class="middle mr5">',
-}
+};
 
 export default Icons
