@@ -1,7 +1,7 @@
 import { isNullOrUndefined } from "util";
 
 interface Emptyable {
-    isEmpty?: () => boolean
+    isEmpty?: () => boolean;
 }
 
 interface IOptional<T> {
@@ -16,63 +16,67 @@ interface IOptional<T> {
 }
 
 class Optional<T> implements IOptional<T> {
-    o: T | null
-
-    constructor(factor: T | null = null) {
-        this.o = factor
-    }
-    static of<T>(factor: NonNullable<T>): Optional<T> {
+    public static of<T>(factor: NonNullable<T>): Optional<T> {
         if (isNullOrUndefined(factor)) {
             throw new Error("Can't be a null or undefined value.");
         }
         return new Optional(factor);
     }
-    static ofNullable<T>(factor: T): Optional<T> {
+    public static ofNullable<T>(factor: T): Optional<T> {
         return new Optional(factor);
     }
-    static empty(): Optional<never> {
+    public static empty(): Optional<never> {
         return new Optional();
     }
-    filter(method: (o: NonNullable<T>) => boolean): Optional<T> {
-        if (isNullOrUndefined(this.o)) return this;
-        return method(<NonNullable<T>>this.o) ? this : Optional.empty();
+    public o: T | null;
+
+    constructor(factor: T | null = null) {
+        this.o = factor;
     }
-    map<R>(method: (o: NonNullable<T>) => R): Optional<R> {
-        if (isNullOrUndefined(this.o)) return Optional.empty();
+    public filter(method: (o: NonNullable<T>) => boolean): Optional<T> {
+        if (isNullOrUndefined(this.o)) { return this; }
+        return method(this.o as NonNullable<T>) ? this : Optional.empty();
+    }
+    public map<R>(method: (o: NonNullable<T>) => R): Optional<R> {
+        if (isNullOrUndefined(this.o)) { return Optional.empty(); }
         try {
-            const r = method(<NonNullable<T>>this.o);
-            return isNullOrUndefined(r) ? Optional.empty() : Optional.of(<NonNullable<R>>r);
-        } catch(err) {
+            const r = method(this.o as NonNullable<T>);
+            return isNullOrUndefined(r) ? Optional.empty() : Optional.of(r as NonNullable<R>);
+        } catch (err) {
+            // tslint:disable-next-line:no-console
             console.warn(err);
         }
         return Optional.empty();
     }
-    thenOrElse(thenMethod: (o: NonNullable<T>) => void, elseMethod: () => void) {
-        if (isNullOrUndefined(this.o) || this.isEmpty()) elseMethod();
-        else thenMethod(this.o as NonNullable<T>);
+    public thenOrElse(thenMethod: (o: NonNullable<T>) => void, elseMethod: () => void) {
+        if (isNullOrUndefined(this.o) || this.isEmpty()) {
+            elseMethod();
+        } else {
+            thenMethod(this.o as NonNullable<T>);
+        }
     }
-    then(method: (o: NonNullable<T>) => void) {
-        if (isNullOrUndefined(this.o) || this.isEmpty()) return;
-        method(<NonNullable<T>>this.o);
+    public then(method: (o: NonNullable<T>) => void) {
+        if (isNullOrUndefined(this.o) || this.isEmpty()) { return; }
+        method(this.o as NonNullable<T>);
     }
-    isEmpty(): boolean {
-        if (isNullOrUndefined(this.o)) return true;
-        const emptyMethod = (<Emptyable>this.o).isEmpty;
+    public isEmpty(): boolean {
+        if (isNullOrUndefined(this.o)) { return true; }
+        const emptyMethod = (this.o as Emptyable).isEmpty;
         return !isNullOrUndefined(emptyMethod) && emptyMethod();
     }
-    get(): NonNullable<T> {
-        if (this.isEmpty()) throw new Error("factor is null or undefined.");
+    public get(): NonNullable<T> {
+        if (this.isEmpty()) { throw new Error("factor is null or undefined."); }
         return this.o as NonNullable<T>;
     }
-    getOrDefault(d: NonNullable<T>): NonNullable<T> {
-        return this.isEmpty() ? d : <NonNullable<T>>this.o;
+    public getOrDefault(d: NonNullable<T>): NonNullable<T> {
+        return this.isEmpty() ? d : this.o as NonNullable<T>;
     }
-    getOrElse(method: () => NonNullable<T>): NonNullable<T> {
-        if (!this.isEmpty()) return <NonNullable<T>>this.o;
+    public getOrElse(method: () => NonNullable<T>): NonNullable<T> {
+        if (!this.isEmpty()) { return this.o as NonNullable<T>; }
         const r = method();
-        if (isNullOrUndefined(r)) throw new Error('getOrElse result of method can not a null or undefined value.')
+        if (isNullOrUndefined(r)) { throw new Error('getOrElse result of method can not a null or undefined value.'); }
         return r;
     }
 }
 
-export default Optional
+export default Optional;
