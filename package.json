@@ -19,7 +19,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.134",
     "http-server": "github:indexzero/http-server",
-    "lodash": ">=4.17.13"
+    "lodash": ">4.17.13"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
