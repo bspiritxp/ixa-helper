@@ -1,4 +1,6 @@
 import Optional from '../src/utils/tool'
+import _ from 'lodash'
+
 enum REPORT_TYPE {
     DISCOVERY = '秘境探索',
     SPACE_ATTACK = '空き地攻撃',
@@ -7,8 +9,8 @@ enum REPORT_TYPE {
 
 function testOpional() {
     let testValue: string | null;
-    testValue = '1'
-    const r1 = Optional.of(testValue).map(c => Number(c)).getOrDefault(0);
+    testValue = 'ok'
+    const r1 = _(testValue).defaultTo('hello')
     console.log(r1);
 }
 
@@ -17,4 +19,4 @@ function testSplitText() {
     const testStr2 = '戦利品「  鉄2160 」を獲得しました';
 }
 
-testSplitText()
+testOpional()

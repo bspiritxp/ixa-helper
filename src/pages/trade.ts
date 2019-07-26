@@ -137,6 +137,8 @@ function nextPage(ifrm: HTMLIFrameElement, mainDoc=true) {
         .thenOrElse(url => ifrm.src = url, searchDone);
 }
 
+type Predicate = (card: TradeCard) => boolean;
+
 /**
  * find card by rarity name on passed document
  * @param rareName 
@@ -147,19 +149,18 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
     if (!doc) return []
     const chains = _.isNull(filters.rareName) ? _.chain(queryAll(SELECTOR.TR_CARD, doc)) :
         _.chain(queryAll(SELECTOR.IMG_RARTY_CARD.replace('${rareName}', filters.rareName), doc));
+    const filterPredicates: Predicate[] = [Boolean]
+    if (filters.canBuy) filterPredicates.push(card => card.canBuy)
+    
+    if (filters.rank > 0) {
+        const compare = filters.rankMore ? _.gte : _.eq;
+        filterPredicates.push(card => compare(card.rank, filters.rank));
+    }
+    const filterMethod = _.overEvery(filterPredicates);
     const r = chains
         .map(el => el.tagName == 'IMG' ? Optional.ofNullable(el.parentElement).map(elp => elp.parentElement as HTMLTableRowElement).get() : el as HTMLTableRowElement)
         .map(row => ofTrade(row))
-        .filter(card => {
-            const flgs: boolean[] = [true]
-            if (filters.canBuy) {
-                flgs.push(card.canBuy)
-            }
-            if (filters.rank > 0) {
-                flgs.push(filters.rankMore ? card.rank >= filters.rank : card.rank == filters.rank)
-            }
-            return !flgs.includes(false);
-        })
+        .filter(card => filterMethod(card))
     return r.value();
 }
 
@@ -224,4 +225,5 @@ function searchDone() {
 
 export default () => {
     const filterBox = FilterBox();
+    _(document.querySelector('#someId')).chain().isElement
 }
