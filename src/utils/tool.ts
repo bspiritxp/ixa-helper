@@ -62,7 +62,7 @@ class Optional<T> implements IOptional<T> {
     public isEmpty(): boolean {
         if (isNullOrUndefined(this.o)) { return true; }
         const emptyMethod = (this.o as Emptyable).isEmpty;
-        return !isNullOrUndefined(emptyMethod) && emptyMethod();
+        return !isNullOrUndefined(emptyMethod) && emptyMethod.call(this.o);
     }
     public get(): NonNullable<T> {
         if (this.isEmpty()) { throw new Error("factor is null or undefined."); }
