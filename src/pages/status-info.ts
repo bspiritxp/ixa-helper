@@ -7,9 +7,16 @@ enum StType {
     INT = "intellect_pt",
 }
 
-const updateAtk = _.partial(statusChange, StType.ATTACK, 2, 2);
-const updateDef = _.partial(statusChange, StType.DEFENSE, 3, 2);
-const updateInt = _.partial(statusChange, StType.INT, 4, 2);
+function statusChangeW(statusType: string, row: number, col: number, point: number) {
+    const method = _.get(window, 'statusChange');
+    if (method) {
+        method(statusType, row, col, point);
+    }
+}
+
+const updateAtk = _.partial(statusChangeW, StType.ATTACK, 2, 2);
+const updateDef = _.partial(statusChangeW, StType.DEFENSE, 3, 2);
+const updateInt = _.partial(statusChangeW, StType.INT, 4, 2);
 const remainPoint = () => query('#remain_point').map(el => Number(el.textContent)).getOrDefault(0);
 
 const ACTIONS: {[key: string]: () => void} = {
@@ -33,7 +40,5 @@ function createButtons() {
 }
 
 export default () => {
-    if (_.isFunction(statusChange)) {
-        createButtons();
-    }
+    createButtons();
 };
