@@ -9,7 +9,7 @@ enum StType {
 
 function statusChangeW(statusType: string, row: number, col: number, point: number) {
     const method = _.get(window, 'statusChange');
-    if (method) {
+    if (_.isFunction(method)) {
         method(statusType, row, col, point);
     }
 }
@@ -25,7 +25,7 @@ const ACTIONS: {[key: string]: () => void} = {
     [StType.INT]: _.flow([remainPoint, updateInt]),
 } as const;
 
-function createButtons() {
+export default () => {
     // create buttons
     for (const ty in StType) {
         if (ty) {
@@ -37,8 +37,4 @@ function createButtons() {
             query(`input[name=${type}]`).then(el => el.after(btn));
         }
     }
-}
-
-export default () => {
-    createButtons();
 };

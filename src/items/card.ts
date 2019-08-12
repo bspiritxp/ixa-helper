@@ -100,7 +100,10 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
 }
 
 function rankByTxt(txt: string) {
-    return txt === "限界突破" ? 6 : Array.from(txt.trim()).filter(c => c === RANK_STAR).length;
+    return _({
+        限界突破: 6,
+        極限突破: 7,
+    }).result(txt, () => Array.from(txt.trim()).filter(c => c === RANK_STAR).length);
 }
 
 export {

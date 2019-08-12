@@ -6,13 +6,15 @@ interface Emptyable {
 
 interface IOptional<T> {
     readonly o: T | null;
-    filter(method: (o: T) => boolean): IOptional<T>;
-    map<R>(method: (o: T) => R): IOptional<R>;
+    filter(method: (o: NonNullable<T>) => boolean): IOptional<T>;
+    map<R>(method: (o: NonNullable<T>) => R): IOptional<R>;
     isEmpty(): boolean;
+    flatMap<R>(method: (o: NonNullable<T>) => IOptional<R>): IOptional<R>;
     get(): T;
     getOrDefault(d: T): T;
     getOrElse(method: () => T): T;
     then(method: (o: T) => void): void;
+    thenOrElse(thenMethod: (o: T) => void, elseMethod: () => void): void;
 }
 
 class Optional<T> implements IOptional<T> {
@@ -33,15 +35,28 @@ class Optional<T> implements IOptional<T> {
     constructor(factor: T | null = null) {
         this.o = factor;
     }
+
     public filter(method: (o: NonNullable<T>) => boolean): Optional<T> {
         if (isNullOrUndefined(this.o)) { return this; }
         return method(this.o as NonNullable<T>) ? this : Optional.empty();
     }
+
     public map<R>(method: (o: NonNullable<T>) => R): Optional<R> {
         if (isNullOrUndefined(this.o)) { return Optional.empty(); }
         try {
             const r = method(this.o as NonNullable<T>);
             return isNullOrUndefined(r) ? Optional.empty() : Optional.of(r as NonNullable<R>);
+        } catch (err) {
+            // tslint:disable-next-line:no-console
+            console.warn(err);
+        }
+        return Optional.empty();
+    }
+    public flatMap<R>(method: (o: NonNullable<T>) => Optional<R>): Optional<R> {
+        if (isNullOrUndefined(this.o)) { return Optional.empty(); }
+        try {
+            const r = method(this.o as NonNullable<T>);
+            return isNullOrUndefined(r) ? Optional.empty() : r;
         } catch (err) {
             // tslint:disable-next-line:no-console
             console.warn(err);

@@ -14,4 +14,4 @@ const Icons: IconSet = {
     icon_toku: '<img src="https://cache.sengokuixa.jp/world/img/card/icon/icon_toku.png" alt="特" width="30" height="30" class="middle mr5">',
 };
 
-export default Icons
+export default Icons;
