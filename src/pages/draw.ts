@@ -9,9 +9,11 @@ const continueDraw = `
 `;
 
 enum KUJI_TYPE {
-    UNKNOWN = '',
-    WHITE = '戦国くじ【白】',
+    白 = '戦国くじ【白】',
+    戦 = '戦国くじ【戦】',
 }
+
+type KujiTypeName = keyof typeof KUJI_TYPE;
 
 enum SELECTOR {
     KUJI_TITLE = '.b_cm_title',
@@ -96,10 +98,11 @@ const initDrawBtn = (container: HTMLSpanElement) => {
 export default () => {
     const kujiType = query(SELECTOR.KUJI_TITLE)
         .map((el: { textContent: string|null; }) => el.textContent)
-        .getOrDefault(KUJI_TYPE.UNKNOWN).trim();
-    if (kujiType !== KUJI_TYPE.WHITE) { return; }
-    const container = document.createElement('span');
-    container.innerHTML = continueDraw;
-    query(SELECTOR.KUJI_RESULT_IMG).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
-    initDrawBtn(container);
+        .getOrDefault('').trim() as KUJI_TYPE;
+    if (Object.values(KUJI_TYPE).includes(kujiType)) {
+        const container = document.createElement('span');
+        container.innerHTML = continueDraw;
+        query(SELECTOR.KUJI_RESULT_IMG).then((el: { after: (arg0: HTMLSpanElement) => void; }) => el.after(container));
+        initDrawBtn(container);
+    }
 };
