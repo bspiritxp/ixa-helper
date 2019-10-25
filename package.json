@@ -8,6 +8,7 @@
     "server": "http-server -c5 ./dist/",
     "build-dev": "NODE_ENV=development webpack && node scripts/build.js",
     "build": "webpack && node scripts/build.js",
+    "lint": "tslint -c ./tslint.json 'src/**/*.ts'",
     "tsr": "ts-node"
   },
   "keywords": [
