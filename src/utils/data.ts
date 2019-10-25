@@ -1,6 +1,7 @@
 import { Report, Village } from '@/items'
 import { query, queryAll, queryLocGroup } from '@/utils/dom'
 import _ from 'lodash'
+//import { map, identity } from 'ramda'
 
 const locationGroup = (s: string) => queryLocGroup(s)
 
@@ -14,6 +15,8 @@ const myFronts = () => locationGroup('.other_country li:not(.head)')
 
 const reports = () => _.chain(queryAll('table.p_report tr:not(:nth-child(1))'))
     .map(el => new Report(el as HTMLElement))
+// const elements = queryAll('table');
+// const resportss = () => map(identity, elements)
 
 const totalMoney = () => {
     return query('.money_b').map(el => el.textContent as number|null).getOrDefault(0)

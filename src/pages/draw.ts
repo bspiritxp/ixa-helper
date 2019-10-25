@@ -1,8 +1,8 @@
 import { totalMoney } from '@/utils/data'
 import { createUnique, query, queryAll } from '@/utils/dom'
-import { create, parseDom } from '@/utils/dom'
+import { createElement, parseDom } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import _ from 'lodash'
+import { map } from 'ramda'
 
 const continueDraw = `
     <input id="drawLimit" type="number" value="1" min="1" max="10" size="3" style="width: 3rem" />
@@ -32,7 +32,7 @@ const afterDraw = (cardNum: number, money: number) => {
     cardNumberEL.innerText = `${cardNum}枚`
     moneyEL.innerText = money.toString()
     // tslint:disable-next-line:prefer-const
-    let [cn, tn] = _.map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()))
+    let [cn, tn] = map(t => Number(t.trim()), cardStockEL.innerText.trim().split('/'))
     cn = tn - cardNum
     cardStockEL.innerText = `${cn} / ${tn}`
 }
@@ -86,7 +86,7 @@ const draw = async () => {
 }
 
 const initDrawBtn = (container: HTMLSpanElement) => {
-    const btn = create('button', 'drawBtn')
+    const btn = createElement('button', 'drawBtn')
     btn.style.cssText = 'padding: 0.5rem'
     btn.textContent = 'Draw'
     btn.onclick = draw

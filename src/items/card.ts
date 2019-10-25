@@ -1,5 +1,5 @@
 import Optional from '@/utils/tool'
-import _ from 'lodash'
+import { isNil } from 'ramda'
 
 const MAX_HP = 100
 const MAX_LEVEL = 20
@@ -73,7 +73,7 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
         .then(rare => card.rarity = rare)
     // Rank
     Optional.ofNullable(el.children[2])
-        .map(elc => _.isNull(elc.textContent) || elc.textContent.trim() === '' ?
+        .map(elc => isNil(elc.textContent) || elc.textContent.trim() === '' ?
         Optional.ofNullable(elc.querySelector('img')).get().alt : elc.textContent)
         .then(txt => card.rank = rankByTxt(txt))
     // 技能

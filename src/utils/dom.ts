@@ -1,7 +1,8 @@
 import { Village } from '@/items'
-import _ from 'lodash'
+import { mapObjIndexed, pipe, invoker} from 'ramda'
 import Optional from './tool'
 
+const queryAllElement = invoker(1, '')
 export const query = (s: string, doc: Document|HTMLElement = document) =>
     Optional.ofNullable(doc.querySelector(s) as HTMLElement|null)
 export const queryAll = (s: string, doc: Document|HTMLElement = document) => doc.querySelectorAll(s)
@@ -13,11 +14,18 @@ export const queryLocGroup = (selector: string) => {
     return new Set(items)
 }
 
-export const create = (tagName: string, idName: string, isShow: boolean = false) => {
-    const result = document.createElement(tagName)
-    result.id = idName
-    result.style.visibility = isShow ? 'visible' : 'hidden'
-    return result
+export const createElement = (tagName: string, idName: string, isShow: boolean = false) => {
+    const element = document.createElement(tagName)
+    element.id = idName
+    element.style.visibility = isShow ? 'visible' : 'hidden'
+    return element
+}
+
+export const createElementWithStyle = (tagName: string, id: string, className: string) => {
+    const element = document.createElement(tagName)
+    element.id = id
+    element.className = className
+    return element
 }
 
 const appendBody = (el: HTMLElement) => {
@@ -30,9 +38,9 @@ const prependBody = (el: HTMLElement) => {
     return el
 }
 
-export const createAdd = _.flow([create, appendBody])
+export const createAdd = pipe(createElement, appendBody)
 
-export const createAddTop = _.flow([create, prependBody])
+export const createAddTop = pipe(createElement, prependBody)
 
 export const createUnique = (tagName: string, idName: string, isShow: boolean = false): HTMLElement => {
     return query(`${tagName}#${idName}`).getOrElse(() => createAdd(tagName, idName, isShow))
@@ -46,9 +54,9 @@ export const parseDom = (domStr: string) => {
 
 export const setCss = (el: HTMLElement, css: {[key: string]: string}) => {
     let cssText = ''
-    _.forOwn(css, (value, key) => {
+    mapObjIndexed((value, key) => {
         cssText += `${key}: ${value};`
-    })
+    }, css)
     el.style.cssText = cssText
 }
 

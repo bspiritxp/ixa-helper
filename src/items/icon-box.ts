@@ -1,6 +1,6 @@
-import { create, setCss } from '@/utils/dom'
+import { createElement, setCss } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import _ from 'lodash'
+import { isNil } from 'ramda'
 import { RareName, Rarity } from './card'
 
 const SINGLE_ICON_SIZE = 30
@@ -15,7 +15,7 @@ class IconBox {
     constructor(icons: HTMLDivElement[]) {
         this.icons = icons
         this.onChanged = null
-        this.elm = create('div', 'iconBox', false) as HTMLDivElement
+        this.elm = createElement('div', 'iconBox', false) as HTMLDivElement
         this.icons.forEach((v, i) => {
             v.dataset.index = i.toString()
             setCss(v, {
@@ -32,7 +32,7 @@ class IconBox {
             }
             this.elm.append(v)
         })
-        const closeButton = create('div', 'closeBox', true)
+        const closeButton = createElement('div', 'closeBox', true)
         closeButton.textContent = '×'
         closeButton.onclick = this.close.bind(this)
         setCss(closeButton, {
@@ -68,14 +68,14 @@ class IconBox {
     }
 
     public get value(): Rarity|null {
-        if (_.isNull(this.idx)) { return null }
+        if (isNil(this.idx)) { return null }
         const key = (this.icons[this.idx].firstElementChild as HTMLImageElement).getAttribute('alt') as RareName
         return Rarity[key]
     }
 
     public select(index: number) {
         if (index < 0 || index >= this.icons.length) { return }
-        const oldValue = _.isNull(this.idx) ? null : this.icons[this.idx].firstElementChild as HTMLImageElement
+        const oldValue = isNil(this.idx) ? null : this.icons[this.idx].firstElementChild as HTMLImageElement
         this.idx = index
         const newValue = this.icons[this.idx].firstElementChild as HTMLImageElement
         if (this.onChanged) {

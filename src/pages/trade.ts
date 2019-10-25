@@ -1,9 +1,9 @@
 import { ofTrade, RareName, Rarity, TradeCard } from '@/items/card'
 import IconBox from '@/items/icon-box'
 import Icons from '@/items/icons'
-import { create, createUnique, getAbsolutePos, parseDom, query, queryAll, setCss } from '@/utils/dom'
+import { createElement, createUnique, getAbsolutePos, parseDom, query, queryAll, setCss } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import _ from 'lodash'
+import { allPass, equals, filter, gte, isNil, map, pipe } from 'ramda'
 
 enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
@@ -59,7 +59,7 @@ const FITLER_BOX_CSS = {
 const iconKeys = ['icon_ten', 'icon_goku', 'icon_toku'] as const
 
 const FilterBox = () => {
-    const boxDiv = create('div', 'filterBox', true)
+    const boxDiv = createElement('div', 'filterBox', true)
     const iconBox = new IconBox(iconKeys.map((key => parseDom(Icons[key]))))
 
     setCss(boxDiv, FITLER_BOX_CSS)
@@ -151,32 +151,32 @@ type Predicate = (card: TradeCard) => boolean
  */
 function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
     if (!doc) { return [] }
-    const chains = _.isNull(filters.rareName) ? _.chain(queryAll(SELECTOR.TR_CARD, doc)) :
-        _.chain(queryAll(SELECTOR.IMG_RARTY_CARD.replace('${rareName}', filters.rareName), doc))
+    const cardElements = isNil(filters.rareName) ? queryAll(SELECTOR.TR_CARD, doc) :
+        queryAll(SELECTOR.IMG_RARTY_CARD.replace('${rareName}', filters.rareName), doc)
     const filterPredicates: Predicate[] = [Boolean]
     if (filters.canBuy) { filterPredicates.push(card => card.canBuy) }
 
     if (filters.rank > 0) {
-        const compare = filters.rankMore ? _.gte : _.eq
+        const compare = filters.rankMore ? gte : equals
         filterPredicates.push(card => compare(card.rank, filters.rank))
     }
-    const filterMethod = _.overEvery(filterPredicates)
-    const r = chains
-        .map(el =>
+    const filterMethod = allPass(filterPredicates)
+    const r = pipe(
+        map((el:Element) =>
             el.tagName === 'IMG' ? Optional.ofNullable(el.parentElement)
-            .map(elp => elp.parentElement as HTMLTableRowElement).get()
-            : el as HTMLTableRowElement)
-        .map(row => ofTrade(row))
-        .filter(card => filterMethod(card))
-    return r.value()
+            .map((elp:Element) => elp.parentElement as HTMLTableRowElement).get()
+             : el as HTMLTableRowElement),
+        map((row:HTMLTableRowElement) => ofTrade(row)),
+        filter(card => filterMethod(card)))(cardElements)
+    return r
 }
 
-const renderFoundCards = _.flow([findCardBy, render])
+const renderFoundCards = pipe(findCardBy, render)
 
 async function searchBy(rare: Rarity|null) {
     const filterOpts = new FilterOption()
-    filterOpts.rareName = _.isNull(rare) ? null : Rarity[rare] as RareName
-    if (_.isNull(rare) && filterOpts.rank <= 0) { return }
+    filterOpts.rareName = isNil(rare) ? null : Rarity[rare] as RareName
+    if (isNil(rare) && filterOpts.rank <= 0) { return }
     const ifrm = createUnique('iframe', 'cardPage', false) as HTMLIFrameElement
     ifrm.onload = () => {
         const doc = ifrm.contentDocument as Document

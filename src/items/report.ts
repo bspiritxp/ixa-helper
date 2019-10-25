@@ -1,6 +1,7 @@
 import { createUnique } from '@/utils/dom'
 import Optional from '@/utils/tool'
 import _ from 'lodash'
+import { isEmpty, isNil } from 'ramda'
 
 enum REPORT_TYPE {
     DISCOVERY = '秘境探索',
@@ -36,7 +37,7 @@ export default class Report {
     }
 
     public async readDetial() {
-        if (!_.isEmpty(this.url) && !_.isNull(this.dom)) {
+        if (!isEmpty(this.url) && !isNil(this.dom)) {
             const firstTd = this.dom.firstElementChild as HTMLElement
             if (firstTd) { firstTd.style.backgroundColor = '#990000' }
             const request = await fetch(this.url)

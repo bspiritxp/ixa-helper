@@ -1,4 +1,4 @@
-import { create, query, setCss } from '@/utils/dom'
+import { createElement, query, setCss } from '@/utils/dom'
 
 /**
  *  Modal window's HTML struct is:
@@ -27,9 +27,9 @@ class ModalWindow {
     public overlay: HTMLDivElement
     public dom: HTMLDivElement
     constructor(content: HTMLElement) {
-        this.overlay = create('div', SELECTOR.OVERLAY_ID, true) as HTMLDivElement
+        this.overlay = createElement('div', SELECTOR.OVERLAY_ID, true) as HTMLDivElement
         this.overlay.className = 'TB_overlayBG'
-        this.dom = create('div', SELECTOR.MODAL_WIN_ID, true) as HTMLDivElement
+        this.dom = createElement('div', SELECTOR.MODAL_WIN_ID, true) as HTMLDivElement
         setCss(this.dom, {
             'margin-left': '-257px',
             'margin-top': '-195px',

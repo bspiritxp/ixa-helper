@@ -1,7 +1,7 @@
 import { Icons, Report } from '@/items'
 import { reports } from '@/utils/data'
-import { create, createUnique, query, setCss } from '@/utils/dom'
-import _ from 'lodash'
+import { createElement, createUnique, query, setCss } from '@/utils/dom'
+import { has } from 'ramda'
 
 const BUTTON_ID = 'sumRessBtn'
 const BUTTON_STYLE = {
@@ -44,7 +44,7 @@ async function sumReport(e: Event) {
     reports().value().forEach(async (r: Report) => {
         await r.readDetial()
         r.ress.forEach((v: number, k: string) => {
-            if (!_.has(totalRess, k)) { totalRess[k] = 0 }
+            if (!has(k, totalRess)) { totalRess[k] = 0 }
             totalRess[k] += Number(v)
         })
         showRessResult(totalRess, rBox)
@@ -53,7 +53,7 @@ async function sumReport(e: Event) {
 }
 
 function createButton() {
-    const button = create('button', BUTTON_ID, true)
+    const button = createElement('button', BUTTON_ID, true)
     button.onclick = sumReport
     button.textContent = '统计资源'
     setCss(button, BUTTON_STYLE)
