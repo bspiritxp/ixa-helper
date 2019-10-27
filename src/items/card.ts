@@ -100,7 +100,7 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
 }
 
 function rankByTxt(txt: string) {
-    switch(txt) {
+    switch (txt) {
         case '限界突破': return 6
         case '極限突破': return 7
         default: return partition(includes(RANK_STAR), [...trim(txt)])[0].length

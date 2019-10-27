@@ -29,9 +29,9 @@ export default () => {
     // create buttons
     for (const ty in StType) {
         if (ty) {
-            //workaround to pass the type check,
-            //https://blog.oio.de/2014/02/28/typescript-accessing-enum-values-via-a-string/
-            const type: StType = (<any>StType)[ty]
+            // workaround to pass the type check,
+            // https://blog.oio.de/2014/02/28/typescript-accessing-enum-values-via-a-string/
+            const type: StType = (StType as any)[ty]
             const btn = createElement('button', `btn_${type}`, true)
             btn.setAttribute('type', 'button')
             btn.onclick = e => ACTIONS[type]()
