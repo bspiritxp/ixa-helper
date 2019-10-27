@@ -1,5 +1,9 @@
 const Login = (jq$: CallableFunction|null) => {
-      jQuery(document).ready(()=> {
+    // use JQuery instead of the typed jq$ to bypass the invoke on possible null object issue
+    // given we don't have control over document and other elements on the page.
+
+    // TODO: research if there's another way to fix this, not by turning off the compile rule
+      jQuery(document).ready(() => {
         if (location.pathname === '/false/login_sessionout.php') {
             location.href = 'http://sengokuixa.jp'
         }
