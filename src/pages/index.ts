@@ -1,5 +1,6 @@
 import Deck from './deck'
 import Draw from './draw'
+import Login from './login'
 import Mapping from './map'
 import Report from './report'
 import StatusInfo from './status-info'
@@ -18,5 +19,9 @@ const router: Router = {
     '/senkuji/senkuji_result.php': Draw,
     '/card/status_info.php': StatusInfo,
     '/card/trade.php': Trade,
+    '/false/login_sessionout.php': Login,
+    '/world/select_world.php': Login,
+    '/': Login,
+    '/index.php': Login,
 }
 export default router
