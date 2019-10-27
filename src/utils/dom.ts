@@ -1,5 +1,5 @@
 import { Village } from '@/items'
-import { mapObjIndexed, pipe, invoker} from 'ramda'
+import { invoker, mapObjIndexed, pipe} from 'ramda'
 import Optional from './tool'
 
 const queryAllElement = invoker(1, '')

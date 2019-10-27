@@ -162,11 +162,11 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
     }
     const filterMethod = allPass(filterPredicates)
     const r = pipe(
-        map((el:Element) =>
+        map((el: Element) =>
             el.tagName === 'IMG' ? Optional.ofNullable(el.parentElement)
-            .map((elp:Element) => elp.parentElement as HTMLTableRowElement).get()
+            .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
              : el as HTMLTableRowElement),
-        map((row:HTMLTableRowElement) => ofTrade(row)),
+        map((row: HTMLTableRowElement) => ofTrade(row)),
         filter(card => filterMethod(card)))(cardElements)
     return r
 }

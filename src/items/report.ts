@@ -16,11 +16,11 @@ enum REPORT_TYPE {
 }
 
 const RESOURCE_TYPE = {
-    '銅': 'money',
-    '木': 'wood',
-    '綿': 'wool',
-    '鉄': 'ingot',
-    '糧': 'grain',
+    銅: 'money',
+    木: 'wood',
+    綿: 'wool',
+    鉄: 'ingot',
+    糧: 'grain',
 } as const
 
 export default class Report {
@@ -61,16 +61,16 @@ export default class Report {
     }
 
     private fetchRess(el: HTMLElement) {
-        const populateResource = (resource: Array<string>) => {
-            const regex = /\d+$/; //match resource amount
-            forEach((res:string) => {
-                this.ress.set(prop(res[0])(RESOURCE_TYPE), Number(match(regex,res)[0]))
+        const populateResource = (resource: string[]) => {
+            const regex = /\d+$/ // match resource amount
+            forEach((res: string) => {
+                this.ress.set(prop(res[0])(RESOURCE_TYPE), Number(match(regex, res)[0]))
             })(resource)
         }
 
-        //过滤掉与资源无关的信息，把资源与对应量存入映射变量
-        //TODO: might reconsider data structure of using a Map object to store a pair
-        //use pair from 'ramda' instead, and store as an object
+        // 过滤掉与资源无关的信息，把资源与对应量存入映射变量
+        // TODO: might reconsider data structure of using a Map object to store a pair
+        // use pair from 'ramda' instead, and store as an object
         const process = pipe(
             slice(1, -1),
             populateResource,

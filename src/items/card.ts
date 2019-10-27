@@ -1,5 +1,5 @@
 import Optional from '@/utils/tool'
-import { isNil } from 'ramda'
+import { includes, isNil, partition, trim } from 'ramda'
 
 const MAX_HP = 100
 const MAX_LEVEL = 20
@@ -100,7 +100,11 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
 }
 
 function rankByTxt(txt: string) {
-    return txt === '限界突破' ? 6 : Array.from(txt.trim()).filter(c => c === RANK_STAR).length
+    switch(txt) {
+        case '限界突破': return 6
+        case '極限突破': return 7
+        default: return partition(includes(RANK_STAR), [...trim(txt)])[0].length
+    }
 }
 
 export {
