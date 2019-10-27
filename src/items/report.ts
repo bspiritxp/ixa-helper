@@ -1,7 +1,14 @@
 import { createUnique } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import _ from 'lodash'
-import { isEmpty, isNil } from 'ramda'
+import {
+    forEach,
+    isEmpty,
+    isNil,
+    match,
+    pipe,
+    prop,
+    slice,
+} from 'ramda'
 
 enum REPORT_TYPE {
     DISCOVERY = '秘境探索',
@@ -9,11 +16,11 @@ enum REPORT_TYPE {
 }
 
 const RESOURCE_TYPE = {
-    money: '銅',
-    wood: '木',
-    wool: '綿',
-    ingot: '鉄',
-    grain: '糧',
+    '銅': 'money',
+    '木': 'wood',
+    '綿': 'wool',
+    '鉄': 'ingot',
+    '糧': 'grain',
 } as const
 
 export default class Report {
@@ -22,7 +29,7 @@ export default class Report {
     public isReport: boolean = false
     public unReaded: boolean = false
     public url: string = ''
-    public ress = new Map()
+    public ress = new Map<string, number>()
 
     constructor(el: HTMLElement) {
         this.dom = el as HTMLTableRowElement
@@ -36,7 +43,7 @@ export default class Report {
         }
     }
 
-    public async readDetial() {
+    public async readDetail() {
         if (!isEmpty(this.url) && !isNil(this.dom)) {
             const firstTd = this.dom.firstElementChild as HTMLElement
             if (firstTd) { firstTd.style.backgroundColor = '#990000' }
@@ -44,27 +51,32 @@ export default class Report {
             const bodyText = await request.text()
             const ifm = createUnique('iframe', 'ixah-report', false) as HTMLIFrameElement
             Optional.ofNullable(ifm.contentDocument)
-              .then(ifmDocument => {
-                ifmDocument.body.innerHTML = bodyText
-                Optional.ofNullable(ifmDocument.querySelector(this._selector()) as HTMLElement)
-                    .then(this.fetchRess.bind(this))
-            })
+                .then(ifmDocument => {
+                    ifmDocument.body.innerHTML = bodyText
+                    Optional.ofNullable(ifmDocument.querySelector(this._selector()) as HTMLElement)
+                        .then(this.fetchRess.bind(this))
+                })
             if (firstTd) { firstTd.style.backgroundColor = '#fff' }
         }
     }
 
     private fetchRess(el: HTMLElement) {
-        _(el.innerText.trim().split(' '))
-            .filter(t => t.trim() !== '')
-            .slice(1, -1)
-            .each(text => {
-                const ressKey = _.findKey(RESOURCE_TYPE, o => o === text[0])
-                if (ressKey) {
-                    const r = /(\d+)$/.exec(text)
-                    const value = _.isArray(r) ? r[0] : 0
-                    this.ress.set(ressKey, Number(value))
-                }
-            })
+        const populateResource = (resource: Array<string>) => {
+            const regex = /\d+$/; //match resource amount
+            forEach((res:string) => {
+                this.ress.set(prop(res[0])(RESOURCE_TYPE), Number(match(regex,res)[0]))
+            })(resource)
+        }
+
+        //过滤掉与资源无关的信息，把资源与对应量存入映射变量
+        //TODO: might reconsider data structure of using a Map object to store a pair
+        //use pair from 'ramda' instead, and store as an object
+        const process = pipe(
+            slice(1, -1),
+            populateResource,
+        )
+
+        process(el.innerText.trim().split(' '))
     }
     private _selector() {
         return this.type === REPORT_TYPE.DISCOVERY ? 'p.gettreger' : 'div.got_item'

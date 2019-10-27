@@ -18,10 +18,8 @@
   "author": "Jochen.He",
   "license": "ISC",
   "dependencies": {
-    "@types/lodash": "^4.14.134",
     "@types/ramda": "0.26.33",
     "http-server": "github:indexzero/http-server",
-    "lodash": ">4.17.13",
     "ramda": "0.26.1"
   },
   "devDependencies": {

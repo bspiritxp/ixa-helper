@@ -41,8 +41,8 @@ async function sumReport(e: Event) {
         'background-color': '#000',
         'color': '#fff',
     })
-    reports().value().forEach(async (r: Report) => {
-        await r.readDetial()
+    reports().forEach(async (r: Report) => {
+        await r.readDetail()
         r.ress.forEach((v: number, k: string) => {
             if (!has(k, totalRess)) { totalRess[k] = 0 }
             totalRess[k] += Number(v)
