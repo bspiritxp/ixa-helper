@@ -1,0 +1,45 @@
+#+title: A helper plugin for sengokuixa
+#+author: JoChen He, Quanlin Chen
+#+date: <2019-10-28 Mon>
+#+language: en
+
+* IXA-Helper
+  NOTE: This file is exported from README.org. Any modifications should also be reflected in that file.
+* Getting started
+  :PROPERTIES:
+  :CUSTOM_ID: getting-started
+  :END:
+Following the instructions below to get a copy of this project and running on your local environment for development and testing purpose
+
+* Prerequisites
+  :PROPERTIES:
+  :CUSTOM_ID: prerequisites
+  :END:
+You need:
+- Yarn
+- NodeJS v10.7(nvm/nodenv files provided in repo)
+
+* Installing
+  :PROPERTIES:
+  :CUSTOM_ID: installing
+  :END:
+** Install the vesrion of node being provided (see .nvmrc or .node-version)
+  :PROPERTIES:
+  :CUSTOM_ID: installing--version
+  :END:
+#+begin_src shell
+nvm use
+#+end_src
+**  Install Yarn
+  :PROPERTIES:
+  :CUSTOM_ID: installing-yarn
+  :END:
+On MacOS you can run ==brew install yarn --ignore-dependencies== to install Yarn, otherwise you can download an installer from [[http://yarnpkg.com/en/docs/install][here]].
+Install dependencies
+#+begin_src shell
+yarn install
+#+end_src
+or
+#+begin_src shell
+yarn
+#+end_src
