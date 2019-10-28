@@ -1,8 +1,7 @@
 import { Village } from '@/items'
-import { invoker, mapObjIndexed, pipe} from 'ramda'
+import { mapObjIndexed, pipe} from 'ramda'
 import Optional from './tool'
 
-const queryAllElement = invoker(1, '')
 export const query = (s: string, doc: Document|HTMLElement = document) =>
     Optional.ofNullable(doc.querySelector(s) as HTMLElement|null)
 export const queryAll = (s: string, doc: Document|HTMLElement = document) => [...doc.querySelectorAll(s)]
@@ -35,6 +34,16 @@ const appendBody = (el: HTMLElement) => {
 
 const prependBody = (el: HTMLElement) => {
     document.body.prepend(el)
+    return el
+}
+
+// Assume parameters are essential for every link to be made, refactor if needed
+export const makeLink = (url: URL, params: URLSearchParams, content: string, title: string) => {
+    const el = createElement('a', '', true) as HTMLLinkElement
+    el.href = url.pathname + '?' + params.toString()
+    el.textContent = content
+    el.title = title
+    el.target = '_blank'
     return el
 }
 
