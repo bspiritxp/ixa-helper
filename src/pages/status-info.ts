@@ -7,6 +7,8 @@ enum StType {
     INT = "intellect_pt",
 }
 
+type StTypeKey = keyof typeof StType;
+
 function statusChangeW(statusType: string, row: number, col: number, point: number) {
     const method = _.get(window, 'statusChange');
     if (_.isFunction(method)) {
@@ -29,7 +31,7 @@ export default () => {
     // create buttons
     for (const ty in StType) {
         if (ty) {
-            const type = StType[ty];
+            const type = StType[ty as StTypeKey];
             const btn = create('button', `btn_${type}`, true);
             btn.setAttribute('type', 'button');
             btn.onclick = e => ACTIONS[type]();

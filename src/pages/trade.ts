@@ -76,7 +76,16 @@ const FilterBox = () => {
                 break;
             case 'button':
                 if (!iconBox.isShow) {
-                    searchBy(iconBox.value);
+                    searchBy(iconBox.value).then( optHandler => {
+                        const clickAction = target.click;
+                        const oldText = target.textContent;
+                        target.textContent = '中止';
+                        target.onclick = er => {
+                            optHandler.then(clearTimeout);
+                            target.textContent = oldText;
+                            target.onclick = clickAction;
+                        };
+                    });
                 }
                 break;
             default:
@@ -173,15 +182,16 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
 
 const renderFoundCards = _.flow([findCardBy, render]);
 
-async function searchBy(rare: Rarity|null) {
+async function searchBy(rare: Rarity|null): Promise<Optional<NodeJS.Timeout>> {
+    let timeHandler: NodeJS.Timeout | null = null;
     const filterOpts = new FilterOption();
     filterOpts.rareName = _.isNull(rare) ? null : Rarity[rare] as RareName;
-    if (_.isNull(rare) && filterOpts.rank <= 0) { return; }
+    if (_.isNull(rare) && filterOpts.rank <= 0) { return Optional.ofNullable(null); }
     const ifrm = createUnique('iframe', 'cardPage', false) as HTMLIFrameElement;
     ifrm.onload = () => {
         const doc = ifrm.contentDocument as Document;
         renderFoundCards(filterOpts, doc);
-        setTimeout(() => nextPage(ifrm, false), 100);
+        timeHandler = setTimeout(() => nextPage(ifrm, false), 100);
         updateSearchProgress(currentPageNumber(doc), pageSize);
     };
     const pageSize = getLastPage();
@@ -189,6 +199,7 @@ async function searchBy(rare: Rarity|null) {
         clearTableList();
         ifrm.src = `${location.pathname}?p=1`;
     }
+    return Optional.ofNullable(timeHandler);
 }
 
 /** dom update functions */

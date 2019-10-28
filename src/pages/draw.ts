@@ -2,7 +2,7 @@ import { totalMoney } from '@/utils/data';
 import { createUnique, query, queryAll } from '@/utils/dom';
 import { create, parseDom } from '@/utils/dom';
 import Optional from '@/utils/tool';
-import _ from 'lodash';
+import { map } from 'lodash';
 
 const continueDraw = `
     <input id="drawLimit" type="number" value="1" min="1" max="10" size="3" style="width: 3rem" />
@@ -34,7 +34,7 @@ const afterDraw = (cardNum: number, money: number) => {
     cardNumberEL.innerText = `${cardNum}枚`;
     moneyEL.innerText = money.toString();
     // tslint:disable-next-line:prefer-const
-    let [cn, tn] = _.map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()));
+    let [cn, tn] = map(cardStockEL.innerText.trim().split('/'), t => Number(t.trim()));
     cn = tn - cardNum;
     cardStockEL.innerText = `${cn} / ${tn}`;
 };
