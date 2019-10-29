@@ -9,8 +9,12 @@ const Deck = () => {
       .map(el => el as HTMLInputElement)
       .filter(el => el.value === '' )
       .then(partLocation => partLocation.value = cv.id ? cv.id.toString() : '')
+}
 
-    // Apply search feature for trading on deck.php
+/**
+ * @method  searchByCardNumber
+ */
+const enableSearchByCardName = () => {
     const base = document.location.protocol + '//' + document.location.host
     const path = '/card/trade.php'
     const targets = queryAll('.ig_deck_smallcard_cardname') as HTMLElement[]
@@ -31,4 +35,7 @@ const Deck = () => {
     map(replaceHTML, targets)
 }
 
-export default Deck
+export default () => {
+    Deck()
+    enableSearchByCardName()
+}
