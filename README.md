@@ -1,7 +1,7 @@
 
 # Table of Contents
 
-1.  [IXA-Helper](#org7de220a)
+1.  [IXA-Helper](#ixa-helper)
 2.  [Getting started](#getting-started)
 3.  [Prerequisites](#prerequisites)
 4.  [Installing](#installing)
@@ -14,7 +14,7 @@
 
 
 
-<a id="org7de220a"></a>
+<a id="ixa-helper"></a>
 
 # IXA-Helper
 
@@ -97,7 +97,7 @@ to fix your code smell automatically, try
 This will start up a local server and listening on port 8080, serving the compiled code from ./dist
 [http://127.0.0.1:8080](http://127.0.0.1:8080)
 Now use your favorite plugin manager like ViolentMonkey or TamperMonkey(GreaseMonkey if you use firefox), point the URL to be your up running server with path
-'/ixa-helper.user.js' if should be automatically recognized as a user script, then head to sengokuixa website and start developing and/or debugging
+'/ixa-helper.user.js' it should be automatically recognized as a user script, then head to sengokuixa website and start developing and/or debugging, enjoy!
 
 
 <a id="built-with"></a>
