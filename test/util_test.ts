@@ -1,6 +1,5 @@
 import Optional from '../src/utils/tool'
-import _ from 'lodash'
-
+import { defaultTo } from 'ramda'
 enum REPORT_TYPE {
     DISCOVERY = '秘境探索',
     SPACE_ATTACK = '空き地攻撃',
@@ -10,7 +9,7 @@ enum REPORT_TYPE {
 function testOpional() {
     let testValue: string | null;
     testValue = 'ok'
-    const r1 = _(testValue).defaultTo('hello')
+    const r1 = defaultTo('hello')(testValue)
     console.log(r1);
 }
 

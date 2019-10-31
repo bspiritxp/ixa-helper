@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name     ixa-helper
-// @version  1.0.0
-// @match https://*.sengokuixa.jp/*
+// @version  1.1.0
+// @match http*://*.sengokuixa.jp/*
+// @match http*://*sengokuixa.jp*
 // @grant    none
 // ==/UserScript==
