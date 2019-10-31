@@ -7,6 +7,8 @@ enum StType {
     INT = 'intellect_pt',
 }
 
+type StTypeKey = keyof typeof StType
+
 function statusChangeW(statusType: string, row: number, col: number, point: number) {
     const method: any = path(['statusChange'], window)
     if (is(Function, method)) {
@@ -29,9 +31,7 @@ export default () => {
     // create buttons
     for (const ty in StType) {
         if (ty) {
-            // workaround to pass the type check,
-            // https://blog.oio.de/2014/02/28/typescript-accessing-enum-values-via-a-string/
-            const type: StType = (StType as any)[ty]
+            const type = StType[ty as StTypeKey]
             const btn = createElement('button', `btn_${type}`, true)
             btn.setAttribute('type', 'button')
             btn.onclick = e => ACTIONS[type]()

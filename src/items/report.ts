@@ -1,13 +1,20 @@
-import { createUnique } from '@/utils/dom'
-import Optional from '@/utils/tool'
+import { createUnique, query } from '@/utils/dom'
+import Optional, { mapOpt, safeGet } from '@/utils/tool'
 import {
+    compose,
+    equals,
+    filter,
     forEach,
+    head,
     isEmpty,
     isNil,
     match,
+    not,
     pipe,
     prop,
     slice,
+    split,
+    trim,
 } from 'ramda'
 
 enum REPORT_TYPE {
@@ -15,7 +22,7 @@ enum REPORT_TYPE {
     SPACE_ATTACK = '空き地攻撃',
 }
 
-const RESOURCE_TYPE = {
+const RESOURCE_TYPE: {[key: string]: string} = {
     銅: 'money',
     木: 'wood',
     綿: 'wool',
@@ -36,10 +43,10 @@ export default class Report {
         this.isReport = Boolean(el && el.tagName && el.tagName === 'TR' && el.childElementCount > 3)
         if (this.isReport) {
             this.unReaded = el.classList.contains('noread')
-            this.url = Optional.ofNullable(el.querySelector('a'))
-                .map((aEL: {href: string}) => aEL.href.trim()).getOrDefault('')
-            this.type = Optional.ofNullable(el.querySelector('img'))
-                .map((img: {alt: string}) => img.alt.trim()).getOrDefault('other')
+            this.url = query('a', el)
+                .map(aEL => (aEL as HTMLLinkElement).href.trim()).getOrDefault('')
+            this.type = query('img', el)
+                .map(img => (img as HTMLImageElement).alt.trim()).getOrDefault('other')
         }
     }
 
@@ -50,10 +57,10 @@ export default class Report {
             const request = await fetch(this.url)
             const bodyText = await request.text()
             const ifm = createUnique('iframe', 'ixah-report', false) as HTMLIFrameElement
-            Optional.ofNullable(ifm.contentDocument)
+            Optional.of(ifm.contentDocument)
                 .then(ifmDocument => {
                     ifmDocument.body.innerHTML = bodyText
-                    Optional.ofNullable(ifmDocument.querySelector(this._selector()) as HTMLElement)
+                    Optional.of(ifmDocument.querySelector(this._selector()) as HTMLElement)
                         .then(this.fetchRess.bind(this))
                 })
             if (firstTd) { firstTd.style.backgroundColor = '#fff' }
@@ -61,22 +68,16 @@ export default class Report {
     }
 
     private fetchRess(el: HTMLElement) {
-        const populateResource = (resource: string[]) => {
-            const regex = /\d+$/ // match resource amount
-            forEach((res: string) => {
-                this.ress.set(prop(res[0])(RESOURCE_TYPE), Number(match(regex, res)[0]))
-            })(resource)
-        }
+        const sumary = (ressTexts: string[]) =>
+            forEach((text: string) =>
+                this.ress.set(prop(text[0], RESOURCE_TYPE),
+                    compose(Number, head, match(/\d+$/))(text[0])))
 
-        // 过滤掉与资源无关的信息，把资源与对应量存入映射变量
-        // TODO: might reconsider data structure of using a Map object to store a pair
-        // use pair from 'ramda' instead, and store as an object
-        const process = pipe(
+        return pipe(
+            trim, split(' '),
+            filter((s: string) => compose(not, isEmpty)(s)),
             slice(1, -1),
-            populateResource,
-        )
-
-        process(el.innerText.trim().split(' '))
+            sumary)(el.innerText)
     }
     private _selector() {
         return this.type === REPORT_TYPE.DISCOVERY ? 'p.gettreger' : 'div.got_item'

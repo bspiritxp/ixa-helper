@@ -76,7 +76,16 @@ const FilterBox = () => {
                 break
             case 'button':
                 if (!iconBox.isShow) {
-                    searchBy(iconBox.value)
+                    searchBy(iconBox.value).then( optHandler => {
+                        const clickAction = target.click
+                        const oldText = target.textContent
+                        target.textContent = '中止'
+                        target.onclick = er => {
+                            optHandler.then(clearTimeout)
+                            target.textContent = oldText
+                            target.onclick = clickAction
+                        }
+                    })
                 }
                 break
             default:
@@ -163,25 +172,26 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
     const filterMethod = allPass(filterPredicates)
     const r = pipe(
         map((el: Element) =>
-            el.tagName === 'IMG' ? Optional.ofNullable(el.parentElement)
+            el.tagName === 'IMG' ? Optional.of(el.parentElement)
             .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
              : el as HTMLTableRowElement),
         map((row: HTMLTableRowElement) => ofTrade(row)),
-        filter(card => filterMethod(card)))(cardElements)
+        filter(card => filterMethod(card)))([...cardElements])
     return r
 }
 
 const renderFoundCards = pipe(findCardBy, render)
 
-async function searchBy(rare: Rarity|null) {
+async function searchBy(rare: Rarity|null): Promise<Optional<NodeJS.Timeout>> {
+    let timeHandler: NodeJS.Timeout | null = null
     const filterOpts = new FilterOption()
     filterOpts.rareName = isNil(rare) ? null : Rarity[rare] as RareName
-    if (isNil(rare) && filterOpts.rank <= 0) { return }
+    if (isNil(rare) && filterOpts.rank <= 0) { return Optional.of(null) }
     const ifrm = createUnique('iframe', 'cardPage', false) as HTMLIFrameElement
     ifrm.onload = () => {
         const doc = ifrm.contentDocument as Document
         renderFoundCards(filterOpts, doc)
-        setTimeout(() => nextPage(ifrm, false), 100)
+        timeHandler = setTimeout(() => nextPage(ifrm, false), 100)
         updateSearchProgress(currentPageNumber(doc), pageSize)
     }
     const pageSize = getLastPage()
@@ -189,6 +199,7 @@ async function searchBy(rare: Rarity|null) {
         clearTableList()
         ifrm.src = `${location.pathname}?p=1`
     }
+    return Optional.of(timeHandler)
 }
 
 /** dom update functions */

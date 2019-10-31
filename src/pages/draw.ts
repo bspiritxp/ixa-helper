@@ -71,11 +71,11 @@ const draw = async () => {
                 ifm.contentDocument.body.innerHTML = content
                 const newCard = ifm.contentDocument.querySelector(SELECTOR.CARD_RESULT) as HTMLElement
                 newCard.prepend(parseDom(`<p><b>第${i + 1}枚</b></p>`))
-                money = Optional.ofNullable(ifm.contentDocument.querySelector(SELECTOR.MONEY_BOX))
+                money = Optional.of(ifm.contentDocument.querySelector(SELECTOR.MONEY_BOX))
                     .map((el: { textContent: string|null; }) => el.textContent)
                     .map(it => Number(it))
                     .getOrDefault(0)
-                cardNum = Optional.ofNullable(ifm.contentDocument.querySelector(SELECTOR.CARD_NUMBER))
+                cardNum = Optional.of(ifm.contentDocument.querySelector(SELECTOR.CARD_NUMBER))
                     .map((el: { textContent: string|null; }) => cardNums(el.textContent))
                     .get()
                 cardBox
