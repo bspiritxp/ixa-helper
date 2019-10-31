@@ -2,8 +2,8 @@ import { Village } from '@/items';
 import _ from 'lodash';
 import Optional from './tool';
 
-export const query = (s: string, doc: Document|HTMLElement = document) =>
-    Optional.ofNullable(doc.querySelector(s) as HTMLElement|null);
+export const query = (s: string, doc: Document|HTMLElement = document): Optional<HTMLElement|null> =>
+    Optional.of(doc.querySelector(s) as HTMLElement|null);
 export const queryAll = (s: string, doc: Document|HTMLElement = document) => doc.querySelectorAll(s);
 
 // 从dom中查询位置信息

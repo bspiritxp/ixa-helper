@@ -172,7 +172,7 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
     const filterMethod = _.overEvery(filterPredicates);
     const r = chains
         .map(el =>
-            el.tagName === 'IMG' ? Optional.ofNullable(el.parentElement)
+            el.tagName === 'IMG' ? Optional.of(el.parentElement)
             .map(elp => elp.parentElement as HTMLTableRowElement).get()
             : el as HTMLTableRowElement)
         .map(row => ofTrade(row))
@@ -186,7 +186,7 @@ async function searchBy(rare: Rarity|null): Promise<Optional<NodeJS.Timeout>> {
     let timeHandler: NodeJS.Timeout | null = null;
     const filterOpts = new FilterOption();
     filterOpts.rareName = _.isNull(rare) ? null : Rarity[rare] as RareName;
-    if (_.isNull(rare) && filterOpts.rank <= 0) { return Optional.ofNullable(null); }
+    if (_.isNull(rare) && filterOpts.rank <= 0) { return Optional.of(null); }
     const ifrm = createUnique('iframe', 'cardPage', false) as HTMLIFrameElement;
     ifrm.onload = () => {
         const doc = ifrm.contentDocument as Document;
@@ -199,7 +199,7 @@ async function searchBy(rare: Rarity|null): Promise<Optional<NodeJS.Timeout>> {
         clearTableList();
         ifrm.src = `${location.pathname}?p=1`;
     }
-    return Optional.ofNullable(timeHandler);
+    return Optional.of(timeHandler);
 }
 
 /** dom update functions */

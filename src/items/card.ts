@@ -64,36 +64,37 @@ function ofTrade(el: HTMLTableRowElement): TradeCard {
     const card: TradeCard = new TradeCard();
     card.el = el;
     // 卡编号
-    Optional.ofNullable(el.children[0].textContent).map(no => Number(no)).then(r => card.no = r);
+    Optional.of(el.children[0].textContent).map(no => Number(no)).then(r => card.no = r);
+
     // 稀有度
-    Optional.ofNullable(el.children[1].children[0])
+    Optional.of(el.children[1].children[0])
         .filter(elc => elc.tagName === "img")
         .map(elc => elc.getAttribute("alt"))
         .map(rareText => Rarity[rareText as RareName])
         .then(rare => card.rarity = rare);
     // Rank
-    Optional.ofNullable(el.children[2])
+    Optional.of(el.children[2])
         .map(elc => _.isNull(elc.textContent) || elc.textContent.trim() === "" ?
-        Optional.ofNullable(elc.querySelector("img")).get().alt : elc.textContent)
+        Optional.of(elc.querySelector("img")).get().alt : elc.textContent)
         .then(txt => card.rank = rankByTxt(txt));
     // 技能
-    Optional.ofNullable(el.children[3])
+    Optional.of(el.children[3])
         .map(elc => elc.textContent)
         .map(raw => raw.trim().split("\n").filter(t => t.trim().length > 2))
         .then(skills => card.skills = skills);
     // 价格
-    Optional.ofNullable(el.children[4])
+    Optional.of(el.children[4])
         .map(elc => elc.textContent)
         .map(txt => Number(txt))
         .then(price => card.price = price);
     // 入札人数：el.children[5] 忽略
     // 入札时间
-    Optional.ofNullable(el.children[6])
+    Optional.of(el.children[6])
         .map(elc => elc.textContent)
         .map(txt => new Date(`${txt}+9:00`)) // Japan ZoneTime
         .then(dt => card.buyTime = dt);
     // 是否可购买
-    Optional.ofNullable(el.children[7])
+    Optional.of(el.children[7])
         .map(elc => (elc as HTMLElement).classList.contains("choose"))
         .then(canBuy => card.canBuy = canBuy);
     return card;

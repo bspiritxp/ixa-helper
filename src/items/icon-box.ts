@@ -26,7 +26,7 @@ class IconBox {
             });
             v.onclick = e => {
                 const target = e.currentTarget as HTMLDivElement;
-                Optional.ofNullable(target.dataset.index)
+                Optional.of(target.dataset.index)
                     .map(txt => Number(txt))
                     .then(this.select.bind(this));
             };
