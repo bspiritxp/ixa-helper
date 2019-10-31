@@ -1,7 +1,7 @@
 import { currentVillage } from '@/utils/data'
 import { makeLink, query, queryAll } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { compose, forEach, map } from 'ramda'
+import { forEach, map } from 'ramda'
 
 const Deck = () => {
     const cv = currentVillage()
