@@ -186,7 +186,7 @@ async function searchBy(rare: Rarity|null): Promise<Optional<NodeJS.Timeout>> {
     let timeHandler: NodeJS.Timeout | null = null
     const filterOpts = new FilterOption()
     filterOpts.rareName = isNil(rare) ? null : Rarity[rare] as RareName
-    if (_.isNull(rare) && filterOpts.rank <= 0) { return Optional.of(null) }
+    if (isNil(rare) && filterOpts.rank <= 0) { return Optional.of(null) }
     const ifrm = createUnique('iframe', 'cardPage', false) as HTMLIFrameElement
     ifrm.onload = () => {
         const doc = ifrm.contentDocument as Document

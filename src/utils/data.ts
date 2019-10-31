@@ -12,7 +12,7 @@ const myVillages = () => locationGroup('.my_country.village li')
 
 const myFronts = () => locationGroup('.other_country li:not(.head)')
 
-const reports = () => map(el => new Report(el as HTMLElement))(queryAll('table.p_report tr:not(:nth-child(1))'))
+const reports = () => map(el => new Report(el as HTMLElement))([...queryAll('table.p_report tr:not(:nth-child(1))')])
 
 const totalMoney = () => {
     return query('.money_b').map(el => el.textContent as number|null).getOrDefault(0)
