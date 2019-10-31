@@ -1,4 +1,4 @@
-import { create, setCss, query } from "@/utils/dom";
+import { createElement, query, setCss } from '@/utils/dom'
 
 /**
  *  Modal window's HTML struct is:
@@ -14,7 +14,7 @@ import { create, setCss, query } from "@/utils/dom";
  *      </div>
  *  </div>
  * ---------------------------------------------------
-*/
+ */
 
 enum SELECTOR {
     OVERLAY_ID = 'TB_overlay',
@@ -24,42 +24,42 @@ enum SELECTOR {
 }
 
 class ModalWindow {
-    overlay: HTMLDivElement;
-    dom: HTMLDivElement;
+    public overlay: HTMLDivElement
+    public dom: HTMLDivElement
     constructor(content: HTMLElement) {
-        this.overlay = create('div', SELECTOR.OVERLAY_ID, true) as HTMLDivElement;
-        this.overlay.className = 'TB_overlayBG';
-        this.dom = create('div', SELECTOR.MODAL_WIN_ID, true) as HTMLDivElement;
+        this.overlay = createElement('div', SELECTOR.OVERLAY_ID, true) as HTMLDivElement
+        this.overlay.className = 'TB_overlayBG'
+        this.dom = createElement('div', SELECTOR.MODAL_WIN_ID, true) as HTMLDivElement
         setCss(this.dom, {
             'margin-left': '-257px',
             'margin-top': '-195px',
-            display: 'block',
-            width: '515px',
-        });
+            'display': 'block',
+            'width': '515px',
+        })
         this.dom.innerHTML = `
-             <div id="TB_title">
-                  <div id="TB_ajaxWindowTitle"></div>
-                  <div id="TB_closeAjaxWindow"><a href="#" id="${SELECTOR.CLOSE_ID}">close</a></div>
-              </div>
-             <div id="TB_ajaxContent" style="width:485px;height:345px">
-              ${content.outerHTML}
-              </div>
-        `
+<div id="TB_title">
+<div id="TB_ajaxWindowTitle"></div>
+<div id="TB_closeAjaxWindow"><a href="#" id="${SELECTOR.CLOSE_ID}">close</a></div>
+</div>
+<div id="TB_ajaxContent" style="width:485px;height:345px">
+${content.outerHTML}
+</div>
+`
     }
 
-    _registerCloseEvent() {
-        this.overlay.onclick = this.close.bind(this);
-        query(`#${SELECTOR.CLOSE_ID}`, this.dom).then(closeButton => closeButton.onclick = this.close.bind(this));
+    public _registerCloseEvent() {
+        this.overlay.onclick = this.close.bind(this)
+        query(`#${SELECTOR.CLOSE_ID}`, this.dom).then(closeButton => closeButton.onclick = this.close.bind(this))
     }
 
-    show() {
-        document.body.append(this.overlay);
-        document.body.append(this.dom);
-        this._registerCloseEvent();
+    public show() {
+        document.body.append(this.overlay)
+        document.body.append(this.dom)
+        this._registerCloseEvent()
     }
 
-    close() {
-        this.dom.remove();
-        this.overlay.remove();
+    public close() {
+        this.dom.remove()
+        this.overlay.remove()
     }
 }

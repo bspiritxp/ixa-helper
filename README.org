@@ -1,0 +1,93 @@
+#+title: A helper plugin for sengokuixa
+#+author: JoChen He, Quanlin Chen
+#+date: <2019-10-28 Mon>
+#+language: en
+
+* IXA-Helper
+:PROPERTIES:
+:CUSTOM_ID: ixa-helper
+:END:
+  NOTE: This file is exported from README.org. Any modifications should also be reflected in that file.
+* Getting started
+  :PROPERTIES:
+  :CUSTOM_ID: getting-started
+  :END:
+Following the instructions below to get a copy of this project and running on your local environment for development and testing purpose
+
+* Prerequisites
+  :PROPERTIES:
+  :CUSTOM_ID: prerequisites
+  :END:
+You need:
+- Yarn
+- NodeJS v10.7(nvm/nodenv files provided in repo)
+
+* Installing
+  :PROPERTIES:
+  :CUSTOM_ID: installing
+  :END:
+** Install the vesrion of node being provided (see .nvmrc or .node-version)
+  :PROPERTIES:
+  :CUSTOM_ID: installing--version
+  :END:
+#+begin_src shell
+nvm use
+#+end_src
+or
+#+begin_src shell
+nodenv local
+#+end_src
+if you use nodenv for version management
+**  Install Yarn
+  :PROPERTIES:
+  :CUSTOM_ID: installing-yarn
+  :END:
+On MacOS you can run =brew install yarn --ignore-dependencies= to install Yarn, otherwise you can download an installer from [[http://yarnpkg.com/en/docs/install][here]].
+Install dependencies
+#+begin_src shell
+yarn install
+#+end_src
+or
+#+begin_src shell
+yarn
+#+end_src
+** Build application
+:PROPERTIES:
+:CUSTOM_ID: installing--build-application
+:END:
+#+begin_src shell
+yarn build
+#+end_src
+** Lint
+:PROPERTIES:
+:CUSTOM_ID: installing--lint
+:END:
+#+begin_src shell
+yarn lint
+#+end_src
+to fix your code smell automatically, try
+#+begin_src shell
+yarn lint --fix
+#+end_src
+
+* Running the app server
+:PROPERTIES:
+:CUSTOM_ID: running-server
+:END:
+
+#+name: start server
+#+begin_src shell
+yarn start
+#+end_src
+This will start up a local server and listening on port 8080, serving the compiled code from ./dist
+[[http://127.0.0.1:8080][http://127.0.0.1:8080]]
+Now use your favorite plugin manager like ViolentMonkey or TamperMonkey(GreaseMonkey if you use firefox), point the URL to be your up running server with path
+'/ixa-helper.user.js' it should be automatically recognized as a user script, then head to sengokuixa website and start developing and/or debugging, enjoy!
+* Built With
+:PROPERTIES:
+:CUSTOM_ID: built-with
+:END:
+- NodeJS
+- webpack
+- typescript
+- Yarn
