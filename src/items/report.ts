@@ -2,7 +2,6 @@ import { createUnique, query } from '@/utils/dom'
 import Optional, { mapOpt, safeGet } from '@/utils/tool'
 import {
     compose,
-    equals,
     filter,
     forEach,
     head,
@@ -10,7 +9,6 @@ import {
     isNil,
     match,
     not,
-    pipe,
     prop,
     slice,
     split,
@@ -73,11 +71,13 @@ export default class Report {
                 this.ress.set(prop(text[0], RESOURCE_TYPE),
                     compose(Number, head, match(/\d+$/))(text[0])))
 
-        return pipe(
-            trim, split(' '),
-            filter((s: string) => compose(not, isEmpty)(s)),
+        return compose(
+            sumary,
             slice(1, -1),
-            sumary)(el.innerText)
+            filter(compose(not, isEmpty)),
+            split(' '),
+            trim,
+        )(el.innerText)
     }
     private _selector() {
         return this.type === REPORT_TYPE.DISCOVERY ? 'p.gettreger' : 'div.got_item'

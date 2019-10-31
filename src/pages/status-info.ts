@@ -1,5 +1,5 @@
 import { createElement, query } from '@/utils/dom'
-import { curry, is, path, pipe } from 'ramda'
+import { compose, curry, is, path } from 'ramda'
 
 enum StType {
     ATTACK = 'attack_pt',
@@ -22,9 +22,9 @@ const updateInt = curry(statusChangeW)(StType.INT, 4, 2)
 const remainPoint = () => query('#remain_point').map(el => Number(el.textContent)).getOrDefault(0)
 
 const ACTIONS: {[key: string]: () => void} = {
-    [StType.ATTACK]: pipe(remainPoint, updateAtk),
-    [StType.DEFENSE]: pipe(remainPoint, updateDef),
-    [StType.INT]: pipe(remainPoint, updateInt),
+    [StType.ATTACK]:  compose(updateAtk, remainPoint),
+    [StType.DEFENSE]: compose(updateDef, remainPoint),
+    [StType.INT]:     compose(updateInt, remainPoint),
 } as const
 
 export default () => {
