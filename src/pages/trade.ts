@@ -261,26 +261,6 @@ const enableSearchByCardNumber = () => {
       .then(forEach(replaceHTML))
 }
 
-/**
- * @method  searchByCardNumber
- */
-const enableSearchByCardNumber = () => {
-    const targets = queryAll('td.fs12') as HTMLElement[]
-    const getCardNumber = (el: HTMLElement) => el.innerText
-    const replaceHTML = (el: HTMLElement) => {
-        const cardNumber = getCardNumber(el)
-        const params = new URLSearchParams()
-        // parameters 't' and 'k' are required by ixa site
-        params.append('t', 'no')
-        params.append('k', cardNumber)
-        // Posting to same page, reuse location.href
-        const link = makeLink(new URL(location.href), params, cardNumber, '查询')
-        el.innerHTML = link.outerHTML
-    }
-
-    map(replaceHTML, targets)
-}
-
 export default () => {
     FilterBox()
     enableSearchByCardNumber()
