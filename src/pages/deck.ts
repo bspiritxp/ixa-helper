@@ -1,7 +1,7 @@
 import { currentVillage } from '@/utils/data'
 import { makeLink, query, queryAll } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { compose, forEach, map } from 'ramda'
+import { forEach, map } from 'ramda'
 
 const Deck = () => {
     const cv = currentVillage()
@@ -10,8 +10,12 @@ const Deck = () => {
       .map(el => el as HTMLInputElement)
       .filter(el => el.value === '' )
       .then(partLocation => partLocation.value = cv.id ? cv.id.toString() : '')
+}
 
-    // Apply search feature for trading on deck.php
+/**
+ * @method  searchByCardNumber
+ */
+const enableSearchByCardName = () => {
     const base = document.location.protocol + '//' + document.location.host
     const path = '/card/trade.php'
     const targets = queryAll('.ig_deck_smallcard_cardname')
@@ -35,4 +39,7 @@ const Deck = () => {
       .then(forEach(replaceHTML))
 }
 
-export default Deck
+export default () => {
+    Deck()
+    enableSearchByCardName()
+}
