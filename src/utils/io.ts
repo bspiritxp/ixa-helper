@@ -1,19 +1,26 @@
 
-const get = (url: string, data: BodyInit): Promise<Response> => new Promise((resolve: CallableFunction) => {
+export const get = (url: string, data?: BodyInit): Promise<Document> => new Promise((resolve: CallableFunction, reject: CallableFunction) => {
     return fetch(url, {
         method: 'GET',
         body: data,
-    })
+    }).then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(html, 'text/html')
+            return resolve(doc)
+        }).catch(error => {
+            return reject('Failed to fetch page', error)
+        })
 })
 
-const post = (url: string, data: BodyInit): Promise<Response> => new Promise<Response>((resolve: CallableFunction) => {
+export const post = (url: string, data: BodyInit): Promise<Response> => new Promise<Response>((resolve: CallableFunction) => {
     return fetch(url, {
         method: 'POST',
         body: data,
     })
 })
 
-const updateDom = (method: VoidFunction): Promise<void> => new Promise((resolve: CallableFunction) => {
+export const updateDom = (method: VoidFunction): Promise<void> => new Promise((resolve: CallableFunction) => {
     try {
         method()
     } catch (err) {
@@ -27,8 +34,3 @@ const changeName = (vid: number, newName: string): Promise<boolean> => new Promi
     return
 })
 
-export default {
-    post,
-    get,
-    updateDom,
-}

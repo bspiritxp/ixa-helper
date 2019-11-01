@@ -5,6 +5,7 @@ import Mapping from './map'
 import Report from './report'
 import StatusInfo from './status-info'
 import Trade from './trade'
+import Village from './village'
 
 const emptyHandler = () => null
 
@@ -23,5 +24,6 @@ const router: Router = {
     '/world/select_world.php': Login,
     '/': Login,
     '/index.php': Login,
+    '/village.php': Village,
 }
 export default router

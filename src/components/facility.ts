@@ -1,4 +1,4 @@
-import post from '@/utils/io'
+import { post } from '@/utils/io'
 
 /**
  * Modeling facility, mainly focus on unit training ones as others don't have much to do with them but upgrading

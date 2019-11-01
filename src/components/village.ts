@@ -1,4 +1,4 @@
-import { Facility } from '@/facility'
+import { Facility } from '@/components/facility'
 import Optional from '@/utils/tool'
 
 const IllegalyNamePrefixes = ['新規城', '新規村', '新規支城', '新領地', '新規陣', '開拓地', '出城', '支城', '商人町'] as const
