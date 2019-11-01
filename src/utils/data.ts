@@ -1,4 +1,4 @@
-import { Report, Village } from '@/items'
+import { Report, Village } from '@/components'
 import { query, queryAll, queryLocGroup } from '@/utils/dom'
 import { map } from 'ramda'
 

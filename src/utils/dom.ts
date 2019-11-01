@@ -1,4 +1,4 @@
-import { Village } from '@/items'
+import { Village } from '@/components'
 import { mapObjIndexed, pipe} from 'ramda'
 import Optional from './tool'
 

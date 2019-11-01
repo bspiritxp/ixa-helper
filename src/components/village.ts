@@ -1,3 +1,4 @@
+import { Facility } from '@/facility'
 import Optional from '@/utils/tool'
 
 const IllegalyNamePrefixes = ['新規城', '新規村', '新規支城', '新領地', '新規陣', '開拓地', '出城', '支城', '商人町'] as const
@@ -8,6 +9,7 @@ export default class Village {
     public y: number | null = null
     public c: number | null = null
     public title: string | null = null
+    public facilities: Facility[] | null = null
 
     constructor(opt: Optional<HTMLElement|null>) {
         opt.then(el => {
