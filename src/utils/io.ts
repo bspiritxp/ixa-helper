@@ -1,4 +1,3 @@
-
 export const get = (url: string, data?: BodyInit): Promise<Document> => new Promise((resolve: CallableFunction, reject: CallableFunction) => {
     return fetch(url, {
         method: 'GET',
@@ -33,4 +32,3 @@ export const updateDom = (method: VoidFunction): Promise<void> => new Promise((r
 const changeName = (vid: number, newName: string): Promise<boolean> => new Promise((resolve: CallableFunction) => {
     return
 })
-
