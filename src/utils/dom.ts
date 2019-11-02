@@ -13,10 +13,14 @@ export const queryLocGroup = (selector: string) => {
     return new Set(items)
 }
 
-export const createElement = (tagName: string, idName: string, isShow: boolean = false) => {
+export const createElement = (tagName: string, idName?: string, isShow?: boolean) => {
     const element = document.createElement(tagName)
-    element.id = idName
-    element.style.visibility = isShow ? 'visible' : 'hidden'
+    if(idName) {
+        element.id = idName
+    }
+    if(isShow) {
+        element.style.visibility = isShow ? 'visible' : 'hidden'
+    }
     return element
 }
 
