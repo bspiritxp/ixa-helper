@@ -1,11 +1,11 @@
 import { Facility, KAJI, KIBA, Unit, YALI,
          // types below
-         YUMI, } from '@/components/facility'
+         YUMI } from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
 import { get, post } from '@/utils/io'
 import Optional from '@/utils/tool'
-import { compose, forEach, head, map, keys, pickBy } from 'ramda'
+import { compose, forEach, head, keys, map, pickBy } from 'ramda'
 import forEachObjIndexed from 'ramda/es/forEachObjIndexed'
 
 // variables to hold max trainable units per category
@@ -25,29 +25,25 @@ let lowQuantity: string
 let midQuantity: string
 let highQuantity: string
 
-let lowDisplayName = ''
-let midDisplayName = ''
-let highDisplayName = ''
-
 // 鍛治
 let kaji1
 let kaji2
 let kaji3
 
 const UnitCategory: {[key: string]: string} = {
-    '槍': 'spear',
-    '弓': 'bow',
-    '馬': 'knight',
-    '兵器': 'weaponry',
+    槍: 'spear',
+    弓: 'bow',
+    馬: 'knight',
+    兵器: 'weaponry',
 }
 
 const TraningMode: {[key: string]: string} = {
-    '普通': 'normal',
-    '高速' : 'high_speed',
-    '上位' : 'upgrade',
+    普通: 'normal',
+    高速 : 'high_speed',
+    上位 : 'upgrade',
 }
 
-const UNIT_MODE_SELECTION_HTML = `
+const SELECTION_HTML = `
 <div>
   <select id="category">
     <option>兵类</option>
@@ -58,15 +54,15 @@ const UNIT_MODE_SELECTION_HTML = `
   </select>
 </div>
 `
-const UNIT_TRAINING_HTML = `
-<div>
-  <span style="color:white">${lowDisplayName}</span> <input type="text" size="4" maxlength="8">
+const inputDisplayHtmlTemplate = (...names: string[]) => `
+<div id="unit-display">
+  <span style="color:white">${names[0]}</span> <input type="text" size="4" maxlength="8">
   <span style="text-decoration:underline;cursor:pointer"></span>
   <button type="button">確認</button><br>
-  <span style="color:white">${midDisplayName}</span> <input type="text" size="4" maxlength="8">
+  <span style="color:white">${names[1]}</span> <input type="text" size="4" maxlength="8">
   <span style="text-decoration:underline;cursor:pointer"></span>
   <button type="button">確認</button><br>
-  <span style="color:white">$(highDisplayName)</span> <input type="text" size="4" maxlength="8">
+  <span style="color:white">${names[2]}</span> <input type="text" size="4" maxlength="8">
   <span style="text-decoration:underline;cursor:pointer"></span>
   <button type="button">確認</button><br>
 </div>
@@ -83,19 +79,48 @@ const Village = () => {
     const unitTrainingDiv = createElement('div', 'unitTraining')
 
     query('#box').then(box => {
-        const updatedHTML = initiateUI()
-        unitTrainingDiv.innerHTML = updatedHTML
+        const updatedSelectionHTML = initiateSelectOptions()
+        unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...['足軽', '長槍足軽', '武士'])
         box.append(unitTrainingDiv)
     })
+    // bind event to select element
+    // Need to bind event on main document, not the parsed partial one, as we need event delegate
+    // for dynamically added element
+    query('#category', unitTrainingDiv).map(el => el as HTMLSelectElement)
+        .then( selection => {
+            selection.addEventListener('change', event => {
+                const triggeredElement = event.target as HTMLSelectElement
+                switch (triggeredElement.value) {
+                    case 'spear':
+                        refreshDisplayHTML(unitTrainingDiv, ['足軽', '長槍足軽', '武士'])
+                        break
+                    case 'bow':
+                        refreshDisplayHTML(unitTrainingDiv, ['弓足軽', '長弓兵', '弓騎馬'])
+                        break
+                    case 'knight':
+                        refreshDisplayHTML(unitTrainingDiv, ['騎馬兵', '精鋭騎馬', '赤備え'])
+                        break
+                    case 'weaponry':
+                        refreshDisplayHTML(unitTrainingDiv, ['破城鎚', '攻城櫓', '穴太衆'])
+                        break
+                }
+            })
+        })
     getMaxTrainableUnitCount()
 }
+const refreshDisplayHTML = (elm: HTMLElement, names: string[]) => {
+    query('div#unit-display', elm).map(el => el as HTMLDivElement)
+        .then(div => {
+            div.outerHTML = inputDisplayHtmlTemplate(...names)
+        })
+}
 
-const initiateUI = (): string => {
+const initiateSelectOptions = (): string => {
     const parser = new DOMParser()
-    const doc = parser.parseFromString(UNIT_MODE_SELECTION_HTML, 'text/html')
-    let target = queryAll('#category', doc)
+    const doc = parser.parseFromString(SELECTION_HTML, 'text/html')
+    let target = queryAll('select#category', doc)
 
-    //unit category
+    // unit category
     const populateCategory = (el: HTMLSelectElement) => {
         forEachObjIndexed((unitId, unitDisplayName) => {
             const option = createElement('option') as HTMLOptionElement
@@ -105,32 +130,19 @@ const initiateUI = (): string => {
         })(UnitCategory)
     }
 
-    const bindEvent = (el: HTMLSelectElement) => {
-        el.onchange = (e) => {
-            console.log(e)
-        }
-        return el
+    compose(populateCategory, head, map(el => el as HTMLSelectElement))([...target])
+
+    // training mode
+    target = queryAll('#mode', doc)
+    const populateMode = (el: HTMLSelectElement) => {
+        forEachObjIndexed((modeId, modeDisplayName) => {
+            const option = createElement('option') as HTMLOptionElement
+            option.value = modeId
+            option.text = modeDisplayName
+            el.add(option)
+        })(TraningMode)
     }
-
-    compose(populateCategory, bindEvent, head, map(el=> el as HTMLSelectElement))([...target])
-
-
-
-
-
-
-    //training mode
-    // target = queryAll('#mode', doc)
-    // const populateMode = (el: HTMLSelectElement) => {
-    //     forEachObjIndexed((modeId, modeDisplayName) => {
-    //         const option = createElement('option') as HTMLOptionElement
-    //         option.value = modeId
-    //         option.text = modeDisplayName
-    //         el.add(option)
-    //     })(TraningMode)
-    // }
-    // compose(populateMode, head, map(el => el as HTMLSelectElement))([...target])
-    console.log(doc.body.innerHTML)
+    compose(populateMode, head, map(el => el as HTMLSelectElement))([...target])
     return doc.body.innerHTML
 }
 

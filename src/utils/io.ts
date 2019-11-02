@@ -1,4 +1,5 @@
-export const get = (url: string, data?: BodyInit): Promise<Document> => new Promise((resolve: CallableFunction, reject: CallableFunction) => {
+export const get = (url: string, data?: BodyInit): Promise<Document> =>
+    new Promise((resolve: CallableFunction, reject: CallableFunction) => {
     return fetch(url, {
         method: 'GET',
         body: data,
@@ -12,7 +13,8 @@ export const get = (url: string, data?: BodyInit): Promise<Document> => new Prom
         })
 })
 
-export const post = (url: string, data: BodyInit): Promise<Response> => new Promise<Response>((resolve: CallableFunction) => {
+export const post = (url: string, data: BodyInit): Promise<Response> =>
+    new Promise<Response>((resolve: CallableFunction) => {
     return fetch(url, {
         method: 'POST',
         body: data,

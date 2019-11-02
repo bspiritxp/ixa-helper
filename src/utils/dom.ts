@@ -15,10 +15,10 @@ export const queryLocGroup = (selector: string) => {
 
 export const createElement = (tagName: string, idName?: string, isShow?: boolean) => {
     const element = document.createElement(tagName)
-    if(idName) {
+    if (idName) {
         element.id = idName
     }
-    if(isShow) {
+    if (isShow) {
         element.style.visibility = isShow ? 'visible' : 'hidden'
     }
     return element
