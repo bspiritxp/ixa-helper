@@ -1,11 +1,12 @@
 import { Facility, KAJI, KIBA, Unit, YALI,
          // types below
-         YUMI } from '@/components/facility'
+         YUMI,
+         TRAINING_MODE} from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
 import { get, post } from '@/utils/io'
 import Optional from '@/utils/tool'
-import { compose, forEach, head, keys, map, pickBy } from 'ramda'
+import { compose, equals, forEach, head, isNil, keys, last, map, nth, pickBy, splitEvery, zip } from 'ramda'
 import forEachObjIndexed from 'ramda/es/forEachObjIndexed'
 
 // variables to hold max trainable units per category
@@ -30,6 +31,8 @@ let kaji1
 let kaji2
 let kaji3
 
+let currentSelectedCategory: string
+let unitCountMap: [string, string][]
 const UnitCategory: {[key: string]: string} = {
     槍: 'spear',
     弓: 'bow',
@@ -45,26 +48,26 @@ const TraningMode: {[key: string]: string} = {
 
 const SELECTION_HTML = `
 <div>
-  <select id="category">
-    <option>兵类</option>
-  </select>
-  <br>
-  <select id="mode">
-    <option>模式</option>
-  </select>
+<select id="category">
+<option>兵类</option>
+</select>
+<br>
+<select id="mode">
+<option>模式</option>
+</select>
 </div>
 `
 const inputDisplayHtmlTemplate = (...names: string[]) => `
 <div id="unit-display">
-  <span style="color:white">${names[0]}</span> <input type="text" size="4" maxlength="8">
-  <span style="text-decoration:underline;cursor:pointer"></span>
-  <button type="button">確認</button><br>
-  <span style="color:white">${names[1]}</span> <input type="text" size="4" maxlength="8">
-  <span style="text-decoration:underline;cursor:pointer"></span>
-  <button type="button">確認</button><br>
-  <span style="color:white">${names[2]}</span> <input type="text" size="4" maxlength="8">
-  <span style="text-decoration:underline;cursor:pointer"></span>
-  <button type="button">確認</button><br>
+<label style="color:white">${names[0]}</label> <input type="text" size="4" maxlength="8">
+<span name="low" style="color:white;text-decoration:underline;cursor:pointer"></span>
+<button type="button">確認</button><br>
+<label style="color:white">${names[1]}</label> <input type="text" size="4" maxlength="8">
+<span name="mid" style="color:white;text-decoration:underline;cursor:pointer"></span>
+<button type="button">確認</button><br>
+<label style="color:white">${names[2]}</label> <input type="text" size="4" maxlength="8">
+<span name="high" style="color:white;text-decoration:underline;cursor:pointer"></span>
+<button type="button">確認</button><br>
 </div>
 `
 
@@ -82,6 +85,9 @@ const Village = () => {
         const updatedSelectionHTML = initiateSelectOptions()
         unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...['足軽', '長槍足軽', '武士'])
         box.append(unitTrainingDiv)
+
+        //initialize unit count map, default to Yali
+        getMaxTrainableUnitCount('Yali' as Unit)
     })
     // bind event to select element
     // Need to bind event on main document, not the parsed partial one, as we need event delegate
@@ -93,20 +99,28 @@ const Village = () => {
                 switch (triggeredElement.value) {
                     case 'spear':
                         refreshDisplayHTML(unitTrainingDiv, ['足軽', '長槍足軽', '武士'])
+                        currentSelectedCategory = 'spear'
+                        getMaxTrainableUnitCount('Yali' as Unit)
                         break
                     case 'bow':
                         refreshDisplayHTML(unitTrainingDiv, ['弓足軽', '長弓兵', '弓騎馬'])
+                        currentSelectedCategory = 'bow'
+                        getMaxTrainableUnitCount('Yumi' as Unit)
                         break
                     case 'knight':
                         refreshDisplayHTML(unitTrainingDiv, ['騎馬兵', '精鋭騎馬', '赤備え'])
+                        currentSelectedCategory = 'knight'
+                        getMaxTrainableUnitCount('Kiba' as Unit)
                         break
                     case 'weaponry':
                         refreshDisplayHTML(unitTrainingDiv, ['破城鎚', '攻城櫓', '穴太衆'])
+                        currentSelectedCategory = 'weaponry'
+                        getMaxTrainableUnitCount('Kaji' as Unit)
                         break
                 }
             })
         })
-    getMaxTrainableUnitCount()
+
 }
 const refreshDisplayHTML = (elm: HTMLElement, names: string[]) => {
     query('div#unit-display', elm).map(el => el as HTMLDivElement)
@@ -146,60 +160,74 @@ const initiateSelectOptions = (): string => {
     return doc.body.innerHTML
 }
 
-const getMaxTrainableUnitCount = () => {
-    // wrap in promise.all
-    fetchYali()
-    // fetchYumi()
-    // fetchKiba()
-    // fetchKaji()
+//TODO: tie data fetching with category and mode selection
+const getMaxTrainableUnitCount = async (category: Unit) => {
+    switch (category) {
+        case 'Yali':
+            await fetchYali()
+            break
+        case 'Yumi':
+            await fetchYumi()
+            break
+        case 'Kiba':
+            await fetchKiba()
+            break
+        case 'Kaji':
+            await fetchKaji()
+            break
+    }
 }
 
 // TODO: default tab will be normal training mode
 // need to find a better way to fetch maximum trainable quantity from all three training mode
-const fetchYali = () => {
+const fetchYali = async () => {
     query('area[title^="足軽兵舎"]')
         .map(el => el as HTMLAreaElement)
         .then(elem => {
             const facility = new Facility(elem)
+        //    facility.trainUnit()
             const url = elem.href + '#tab1' // default to #tab1
             get(url).then(doc => {
-                getMaxPossibleQuantity(doc, YALI, 'Yali' as Unit)
-                console.log('lv1: ' + lowQuantity)
-                console.log('lv2: ' + midQuantity)
-                console.log('lv3 ' + highQuantity)
+                getMaxPossibleQuantity(doc, 'Yali' as Unit)
+                populateCountToUI(unitCountMap)
             })
         })
 }
 
-const fetchYumi = () => {
+const fetchYumi = async () => {
     query('area[title^="弓兵舎"]')
         .map(el => el as HTMLAreaElement)
-        .then(facility => {
-            const url = facility.href
+        .then(elem => {
+            const facility = new Facility(elem)
+            const url = elem.href + '#tab1'
             get(url).then(doc => {
-                getMaxPossibleQuantity(doc, YUMI, 'Yumi' as Unit)
+                getMaxPossibleQuantity(doc, 'Yumi' as Unit)
+                populateCountToUI(unitCountMap)
             })
         })
 }
 
-const fetchKiba = () => {
+const fetchKiba = async () => {
     query('area[title^="厩舎"]')
         .map(el => el as HTMLAreaElement)
-        .then(facility => {
-            const url = facility.href
+        .then(elem => {
+            const facility = new Facility(elem)
+            const url = elem.href + '#tab1'
             get(url).then(doc => {
-                getMaxPossibleQuantity(doc, KIBA, 'Kiba' as Unit)
+                getMaxPossibleQuantity(doc,  'Kiba' as Unit)
+                populateCountToUI(unitCountMap)
             })
         })
 }
 
-const fetchKaji = () => {
+const fetchKaji = async () => {
     query('area[title^="兵器鍛冶"]')
         .map(el => el as HTMLAreaElement)
         .then(facility => {
             const url = facility.href
             get(url).then(doc => {
-                getMaxPossibleQuantity(doc, KAJI, 'Kaji' as Unit)
+                getMaxPossibleQuantity(doc, 'Kaji' as Unit)
+                populateCountToUI(unitCountMap)
             })
         })
 }
@@ -211,80 +239,114 @@ const fetchKaji = () => {
  * @param unit: Unit differentiate what variable to use for storing unit training information
  */
 // TODO: refactor to a better way of processing and storing unit training variable
-const getMaxPossibleQuantity = (doc: Document, mapping: {[k: string]: string}, unit: Unit) => {
+const getMaxPossibleQuantity = (doc: Document,  unit: Unit) => {
     // get the max possible quantity
-    const targets = queryAll('span[onclick]', doc)
-//        .map(el => el as HTMLSpanElement)
-    const getQuantity = (span: HTMLSpanElement) => {
-            const match = (/\d{3}/).exec(span.outerHTML)
-            if (match) {
-                const unitId = match[0]
-                if (span.textContent) {
-                    const pred = (v: string, k: string) => v === unitId
-                    const unitLevel = compose(head, keys, pickBy(pred))(mapping)
-                    console.log('unit level: ' + unitLevel)
-                    switch (unit) {
-                        case 'Yali':
-                            switch (unitLevel) {
-                                case '足軽':
-                                    lowQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '長槍足軽':
-                                    midQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '武士':
-                                    highQuantity = span.textContent.slice(1, -1)
-                                    break
-                            }
-                            break
-                        case 'Yumi':
-                            switch (unitLevel) {
-                                case '弓足軽':
-                                    lowQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '長弓兵':
-                                    midQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '弓騎馬':
-                                    highQuantity = span.textContent.slice(1, -1)
-                                    break
-                            }
-                            break
-                        case 'Kiba':
-                            switch (unitLevel) {
-                                case '騎馬兵':
-                                    lowQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '精鋭騎馬':
-                                    midQuantity = span.textContent.slice(1, -1)
-                                    break
-                                case '赤備え':
-                                    highQuantity = span.textContent.slice(1, -1)
-                                    break
-                            }
-                            break
-                        case 'Kaji':
-                            switch (unitLevel) {
-                                case '破城鎚':
-                                    kaji1 = span.textContent.slice(1, -1)
-                                    break
-                                case '攻城櫓':
-                                    kaji2 = span.textContent.slice(1, -1)
-                                    break
-                                case '穴太衆':
-                                    kaji3 = span.textContent.slice(1, -1)
-                                    break
-                            }
-                            break
-                    }
+    //    const targets = queryAll('span[onclick]', doc)
 
+    // The idea is to form a list so that
+    // [a, b, c], [1, 2, 3] => [[a, 1], [b, 2], [c, 3]]
+    // where a, b,c are unit id, 1, 2, 3 are possible unit count
+    let unitIdList: string[] = []
+    let possibleUnitCount: string[] = []
+//    let tupleList: [string, string][]
+    const targets = queryAll('form[name="createUnitForm"]', doc)
+    const getQuantity = (form: HTMLFormElement) => {
+        const match  = (/\(\d+\)/).exec(form.innerText.trim())
+        isNil(match) ? possibleUnitCount.push('0') : possibleUnitCount.push(match[0])
+
+        query('input', form).map(el => el as HTMLInputElement).then( input => {
+            if(input) {
+                const examString = input.id
+                const match = (/(\d{3})_?(\d{3})?/).exec(examString)
+                let toUnitId: string , fromUnitId: string
+
+                if(match){ //not likely to be no match
+                    if(equals(match[0], match[1])) { //normal or high speed training
+                        toUnitId = match[1]  //full match and first group match will be the same
+                        unitIdList.push(toUnitId)
+                    } else {
+                        toUnitId = match[2]
+                        fromUnitId = match[1]
+                        unitIdList.push(fromUnitId + '_' + toUnitId)
+                    }
                 }
+            } else {
+                unitIdList.push('-1')//兵士数が不足しています
             }
+        })
     }
 
-    compose(forEach(getQuantity), map(o => o as HTMLSpanElement))([...targets])
+    compose(forEach(getQuantity), map(o => o as HTMLFormElement))([...targets])
+    unitCountMap = zip(unitIdList, possibleUnitCount)
+//    return unitCountMap
+}
+
+// current solution is to find corresponding element from the merged tuple list by given category
+// so we need to know index information
+const populateCountToUI = (map: [string, string][]) => {
+    //for now split by 3 as generally there are 3 levels for one type of unit
+    const tupleList = splitEvery(3, map)
+    switch(currentSelectedCategory) {
+        case 'spear':
+            query('span[name="low"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="mid"]').map(el => el as HTMLSpanElement)
+            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
+                .then(span => {
+                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="high"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            break
+        case 'bow':
+            query('span[name="low"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="mid"]').map(el => el as HTMLSpanElement)
+            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
+                .then(span => {
+                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="high"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            break
+        case 'knight':
+            query('span[name="low"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="mid"]').map(el => el as HTMLSpanElement)
+            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
+                .then(span => {
+                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="high"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    span.innerText = last(tuple)
+                })
+            break
+        case 'weaponry':
+            break
+    }
 
 }
+
 
 export default () => {
     Village()
