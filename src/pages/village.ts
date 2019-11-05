@@ -32,7 +32,8 @@ let kaji2
 let kaji3
 
 let currentSelectedCategory: string
-let unitCountMap: [string, string][]
+let currentSelectedMode: string
+let unitCountMap: [string, string][][]
 const UnitCategory: {[key: string]: string} = {
     槍: 'spear',
     弓: 'bow',
@@ -89,39 +90,65 @@ const Village = () => {
         //initialize unit count map, default to Yali
         getMaxTrainableUnitCount('Yali' as Unit)
     })
-    // bind event to select element
-    // Need to bind event on main document, not the parsed partial one, as we need event delegate
-    // for dynamically added element
-    query('#category', unitTrainingDiv).map(el => el as HTMLSelectElement)
+
+    bindEventToCategorySelection(unitTrainingDiv)
+    bindEventToModeSelection(unitTrainingDiv)
+
+}
+
+// Bind event to select element
+// Need to bind event on main document, not the parsed partial one, as we need event delegate
+// for dynamically added element
+const bindEventToCategorySelection = (container:HTMLElement) => {
+    query('select#category', container).map(el => el as HTMLSelectElement)
         .then( selection => {
             selection.addEventListener('change', event => {
                 const triggeredElement = event.target as HTMLSelectElement
-                switch (triggeredElement.value) {
+                currentSelectedCategory = triggeredElement.value
+                switch (currentSelectedCategory) {
                     case 'spear':
-                        refreshDisplayHTML(unitTrainingDiv, ['足軽', '長槍足軽', '武士'])
-                        currentSelectedCategory = 'spear'
+                        refreshDisplayHTML(container, ['足軽', '長槍足軽', '武士'])
                         getMaxTrainableUnitCount('Yali' as Unit)
                         break
                     case 'bow':
-                        refreshDisplayHTML(unitTrainingDiv, ['弓足軽', '長弓兵', '弓騎馬'])
-                        currentSelectedCategory = 'bow'
+                        refreshDisplayHTML(container, ['弓足軽', '長弓兵', '弓騎馬'])
                         getMaxTrainableUnitCount('Yumi' as Unit)
                         break
                     case 'knight':
-                        refreshDisplayHTML(unitTrainingDiv, ['騎馬兵', '精鋭騎馬', '赤備え'])
-                        currentSelectedCategory = 'knight'
+                        refreshDisplayHTML(container, ['騎馬兵', '精鋭騎馬', '赤備え'])
                         getMaxTrainableUnitCount('Kiba' as Unit)
                         break
                     case 'weaponry':
-                        refreshDisplayHTML(unitTrainingDiv, ['破城鎚', '攻城櫓', '穴太衆'])
-                        currentSelectedCategory = 'weaponry'
+                        refreshDisplayHTML(container, ['破城鎚', '攻城櫓', '穴太衆'])
                         getMaxTrainableUnitCount('Kaji' as Unit)
+                        break
+                }
+
+            })
+        })
+}
+
+const bindEventToModeSelection = (container:HTMLElement) => {
+    query('select#mode', container).map(el => el as HTMLSelectElement)
+        .then( selection => {
+            selection.addEventListener('change', event => {
+                const triggeredElement = event.target as HTMLSelectElement
+                currentSelectedMode = triggeredElement.value
+                switch (currentSelectedMode) {
+                    case 'normal':
+                        getMaxTrainableUnitCount('Yali' as Unit)
+                        break
+                    case 'high-speed':
+                        getMaxTrainableUnitCount('Yumi' as Unit)
+                        break
+                    case 'upgrade':
+                        getMaxTrainableUnitCount('Kiba' as Unit)
                         break
                 }
             })
         })
-
 }
+
 const refreshDisplayHTML = (elm: HTMLElement, names: string[]) => {
     query('div#unit-display', elm).map(el => el as HTMLDivElement)
         .then(div => {
@@ -248,96 +275,105 @@ const getMaxPossibleQuantity = (doc: Document,  unit: Unit) => {
     // where a, b,c are unit id, 1, 2, 3 are possible unit count
     let unitIdList: string[] = []
     let possibleUnitCount: string[] = []
-//    let tupleList: [string, string][]
     const targets = queryAll('form[name="createUnitForm"]', doc)
     const getQuantity = (form: HTMLFormElement) => {
         const match  = (/\(\d+\)/).exec(form.innerText.trim())
-        isNil(match) ? possibleUnitCount.push('0') : possibleUnitCount.push(match[0])
+        isNil(match) ? possibleUnitCount.push('(0)') : possibleUnitCount.push(match[0])
+        query('input', form).map(el => el as HTMLInputElement).thenOrElse( input => {
+            const examString = input.id
+            const match = (/(\d{3})_?(\d{3})?/).exec(examString)
+            let toUnitId: string , fromUnitId: string
 
-        query('input', form).map(el => el as HTMLInputElement).then( input => {
-            if(input) {
-                const examString = input.id
-                const match = (/(\d{3})_?(\d{3})?/).exec(examString)
-                let toUnitId: string , fromUnitId: string
-
-                if(match){ //not likely to be no match
-                    if(equals(match[0], match[1])) { //normal or high speed training
-                        toUnitId = match[1]  //full match and first group match will be the same
-                        unitIdList.push(toUnitId)
-                    } else {
-                        toUnitId = match[2]
-                        fromUnitId = match[1]
-                        unitIdList.push(fromUnitId + '_' + toUnitId)
-                    }
+            if(match){ //not likely to have no match
+                if(equals(match[0], match[1])) { //normal or high speed training
+                    toUnitId = match[1]  //full match and first group match will be the same
+                    unitIdList.push(toUnitId)
+                } else {
+                    toUnitId = match[2]
+                    fromUnitId = match[1]
+                    unitIdList.push(fromUnitId + '_' + toUnitId)
                 }
-            } else {
-                unitIdList.push('-1')//兵士数が不足しています
             }
+        },
+        () => {
+            unitIdList.push('-1')//兵士数が不足しています
         })
     }
 
     compose(forEach(getQuantity), map(o => o as HTMLFormElement))([...targets])
-    unitCountMap = zip(unitIdList, possibleUnitCount)
-//    return unitCountMap
+    //TODO: figure out how to get the type correctly for 'compose'
+    unitCountMap = splitEvery(3, zip(unitIdList, possibleUnitCount))
 }
 
 // current solution is to find corresponding element from the merged tuple list by given category
 // so we need to know index information
-const populateCountToUI = (map: [string, string][]) => {
-    //for now split by 3 as generally there are 3 levels for one type of unit
-    const tupleList = splitEvery(3, map)
+const populateCountToUI = (map: [string, string][][]) => {
+    //TODO: figure out how to pass the training mode selection as argument and works nice with rest of
+    //code structure rather than relying on a global variable
+
+    //for now split by 3 as generally there are 3 levels for one type of unit, in conjunction with mode selection
+    let tupleList: [string, string][]
+    switch(currentSelectedMode){
+        case 'normal':
+            tupleList = map[0]
+            break
+        case 'high-speed':
+            tupleList = map[1]
+            break
+        case 'upgrade':
+            tupleList = map[2]
+            break
+    }
+
     switch(currentSelectedCategory) {
         case 'spear':
             query('span[name="low"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    const tuple = head(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="mid"]').map(el => el as HTMLSpanElement)
-            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
                 .then(span => {
-                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    const tuple = nth(1)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="high"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    const tuple = nth(2)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             break
         case 'bow':
             query('span[name="low"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    const tuple = head(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="mid"]').map(el => el as HTMLSpanElement)
-            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
                 .then(span => {
-                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    const tuple = nth(1)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="high"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    const tuple = nth(2)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             break
         case 'knight':
             query('span[name="low"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(0), head)(tupleList) as string[]
+                    const tuple = head(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="mid"]').map(el => el as HTMLSpanElement)
-            //   .then(span => span.innerText = compose(last, nth(0),  head)(tupleList))
                 .then(span => {
-                    const tuple = compose(nth(1), head)(tupleList) as string[]
+                    const tuple = nth(1)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             query('span[name="high"]').map(el => el as HTMLSpanElement)
                 .then(span => {
-                    const tuple = compose(nth(2), head)(tupleList) as string[]
+                    const tuple = nth(2)(tupleList) as string[]
                     span.innerText = last(tuple)
                 })
             break
