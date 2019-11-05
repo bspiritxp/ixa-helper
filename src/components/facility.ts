@@ -24,32 +24,23 @@ const ALL_UNIT = {
     焙烙火矢: '',
 }
 
-const YALI: {[key: string]: string} = {
+const YARI = {
     足軽: '321',
     長槍足軽: '322',
     武士: '323',
-    // lv1: '321', // 足軽
-    // lv2: '322', // 長槍足軽
-    // lv3: '323', // 武士
-} as const
+}
 
-const YUMI: {[key: string]: string} = {
+const YUMI = {
     弓足軽: '325',
     長弓兵: '326',
     弓騎馬: '327',
-    // lv1: '325', // 弓足軽
-    // lv2: '326', // 長弓兵
-    // lv3: '327', // 弓騎馬
-} as const
+}
 
-const KIBA: {[key: string]: string} = {
+const KIBA = {
     騎馬兵: '329',
     精鋭騎馬: '330',
     赤備え: '331',
-    // lv1: '329', // 騎馬兵
-    // lv2: '330', // 精鋭騎馬
-    // lv3: '331', // 赤備え
-} as const
+}
 
 const KAJI: {[key: string]: string} = {
     破城鎚: '333',
@@ -59,15 +50,14 @@ const KAJI: {[key: string]: string} = {
     鉄砲足軽: '336',
     騎馬鉄砲: '',
     焙烙火矢: '',
-    // lv1: '333', // 破城鎚
-    // lv2: '334', // 攻城櫓
-    // lv3: '326', // 鉄砲足軽
 } as const
 
-export type Unit = 'Yali' | 'Yumi' | 'Kiba' | 'Kaji'
+export enum UNIT_CATEGORY {
+    YARI, YUMI, KIBA, KAJI
+}
 
 export enum TRAINING_MODE {
-    NORMAL = 'normal', HIGH_SPEED = 'high_speed', UPGRADE = 'upgrade',
+    NORMAL, HIGH_SPEED, UPGRADE,
 }
 
 interface UnitTraining {
@@ -200,7 +190,7 @@ class Facility {
 
 export {
     Facility,
-    YALI,
+    YARI,
     YUMI,
     KIBA,
     KAJI,

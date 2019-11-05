@@ -1,6 +1,6 @@
-import { Facility, KAJI, KIBA, Unit, YALI,
+import { Facility, KAJI, KIBA, YARI, YUMI,
          // types below
-         YUMI,
+         UNIT_CATEGORY,
          TRAINING_MODE} from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
@@ -9,31 +9,22 @@ import Optional from '@/utils/tool'
 import { compose, equals, forEach, head, isNil, keys, last, map, nth, pickBy, splitEvery, zip } from 'ramda'
 import forEachObjIndexed from 'ramda/es/forEachObjIndexed'
 
-// variables to hold max trainable units per category
-// TODO: rethink if there's a better way to fetch and store such data
-// Update: reuse the variable to display different category's max trainable units,
 // note that weaponry is special as it has more unit types than others
-
-/* 槍 弓 騎馬 shared variables
- *  three variables to represent three levels of unit
- * also shared by different training mode
- * example:
- * normal training mode will require 3 variables to display low, mid, high trainable units
- * same as high speed training mode, upgrading mode will change the meaning of each variable
- * to be low->mid quantity, mid->high quantity, low->high quantity, respectively
- */
-let lowQuantity: string
-let midQuantity: string
-let highQuantity: string
-
-// 鍛治
-let kaji1
-let kaji2
-let kaji3
+// TODO: handle 器， 炮 gracefully
 
 let currentSelectedCategory: string
-let currentSelectedMode: string
+let currentSelectedMode = TRAINING_MODE.NORMAL // default to normal
+
+/** Data structure to hold unit -> max trainable count relation
+ * data is merged from two set of meta data
+ * first is the unit id, in the form of string  ex: ['321', '322', ...]
+ * second is max trainable count, in the form of string array, ['(1000)', '(200)',...]
+ * then we zip them up to form [['321', '(1000)', ['322', '(200')]],
+ * eventually we'll split them into groups by every other 3 tuples because each group will
+ * represent the max trainable count for 'normal', 'high_speed', 'upgrade', respectively
+ */
 let unitCountMap: [string, string][][]
+
 const UnitCategory: {[key: string]: string} = {
     槍: 'spear',
     弓: 'bow',
@@ -42,9 +33,9 @@ const UnitCategory: {[key: string]: string} = {
 }
 
 const TraningMode: {[key: string]: string} = {
-    普通: 'normal',
-    高速 : 'high_speed',
-    上位 : 'upgrade',
+    普通: '0',
+    高速 : '1',
+    上位 : '2',
 }
 
 const SELECTION_HTML = `
@@ -52,9 +43,7 @@ const SELECTION_HTML = `
 <select id="category">
 <option>兵类</option>
 </select>
-<br>
 <select id="mode">
-<option>模式</option>
 </select>
 </div>
 `
@@ -84,76 +73,16 @@ const Village = () => {
 
     query('#box').then(box => {
         const updatedSelectionHTML = initiateSelectOptions()
-        unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...['足軽', '長槍足軽', '武士'])
+        unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...keys(YARI))
         box.append(unitTrainingDiv)
 
-        //initialize unit count map, default to Yali
-        getMaxTrainableUnitCount('Yali' as Unit)
+        //initialize unit count map, default to Yari
+        getMaxTrainableUnitCount(UNIT_CATEGORY.YARI)
     })
 
     bindEventToCategorySelection(unitTrainingDiv)
     bindEventToModeSelection(unitTrainingDiv)
 
-}
-
-// Bind event to select element
-// Need to bind event on main document, not the parsed partial one, as we need event delegate
-// for dynamically added element
-const bindEventToCategorySelection = (container:HTMLElement) => {
-    query('select#category', container).map(el => el as HTMLSelectElement)
-        .then( selection => {
-            selection.addEventListener('change', event => {
-                const triggeredElement = event.target as HTMLSelectElement
-                currentSelectedCategory = triggeredElement.value
-                switch (currentSelectedCategory) {
-                    case 'spear':
-                        refreshDisplayHTML(container, ['足軽', '長槍足軽', '武士'])
-                        getMaxTrainableUnitCount('Yali' as Unit)
-                        break
-                    case 'bow':
-                        refreshDisplayHTML(container, ['弓足軽', '長弓兵', '弓騎馬'])
-                        getMaxTrainableUnitCount('Yumi' as Unit)
-                        break
-                    case 'knight':
-                        refreshDisplayHTML(container, ['騎馬兵', '精鋭騎馬', '赤備え'])
-                        getMaxTrainableUnitCount('Kiba' as Unit)
-                        break
-                    case 'weaponry':
-                        refreshDisplayHTML(container, ['破城鎚', '攻城櫓', '穴太衆'])
-                        getMaxTrainableUnitCount('Kaji' as Unit)
-                        break
-                }
-
-            })
-        })
-}
-
-const bindEventToModeSelection = (container:HTMLElement) => {
-    query('select#mode', container).map(el => el as HTMLSelectElement)
-        .then( selection => {
-            selection.addEventListener('change', event => {
-                const triggeredElement = event.target as HTMLSelectElement
-                currentSelectedMode = triggeredElement.value
-                switch (currentSelectedMode) {
-                    case 'normal':
-                        getMaxTrainableUnitCount('Yali' as Unit)
-                        break
-                    case 'high-speed':
-                        getMaxTrainableUnitCount('Yumi' as Unit)
-                        break
-                    case 'upgrade':
-                        getMaxTrainableUnitCount('Kiba' as Unit)
-                        break
-                }
-            })
-        })
-}
-
-const refreshDisplayHTML = (elm: HTMLElement, names: string[]) => {
-    query('div#unit-display', elm).map(el => el as HTMLDivElement)
-        .then(div => {
-            div.outerHTML = inputDisplayHtmlTemplate(...names)
-        })
 }
 
 const initiateSelectOptions = (): string => {
@@ -187,78 +116,94 @@ const initiateSelectOptions = (): string => {
     return doc.body.innerHTML
 }
 
+// Bind event to select element
+// Need to bind event on main document, not the parsed partial one, as we need event delegate
+// for dynamically added element
+const bindEventToCategorySelection = (container:HTMLElement) => {
+    query('select#category', container).map(el => el as HTMLSelectElement)
+        .then( selection => {
+            selection.addEventListener('change', event => {
+                const triggeredElement = event.target as HTMLSelectElement
+                currentSelectedCategory = triggeredElement.value
+                switch (currentSelectedCategory) {
+                    case 'spear':
+                        refreshDisplayHTML(container, keys(YARI))
+                        getMaxTrainableUnitCount(UNIT_CATEGORY.YARI)
+                        break
+                    case 'bow':
+                        refreshDisplayHTML(container, keys(YUMI))
+                        getMaxTrainableUnitCount(UNIT_CATEGORY.YUMI)
+                        break
+                    case 'knight':
+                        refreshDisplayHTML(container, keys(KIBA))
+                        getMaxTrainableUnitCount(UNIT_CATEGORY.KIBA)
+                        break
+                    case 'weaponry': //might need to separate 器, 炮
+                        refreshDisplayHTML(container, ['破城鎚', '攻城櫓', '穴太衆'])
+                        getMaxTrainableUnitCount(UNIT_CATEGORY.KAJI)
+                        break
+                }
+            })
+        })
+}
+
+const bindEventToModeSelection = (container:HTMLElement) => {
+    query('select#mode', container).map(el => el as HTMLSelectElement)
+        .then( selection => {
+            selection.addEventListener('change', event => {
+                const triggeredElement = event.target as HTMLSelectElement
+                currentSelectedMode = +triggeredElement.value as TRAINING_MODE
+                switch (currentSelectedMode) {
+                    case TRAINING_MODE.NORMAL:
+                        populateCountToUI(unitCountMap[0]);
+                        break
+                    case TRAINING_MODE.HIGH_SPEED:
+                        populateCountToUI(unitCountMap[1]);
+                        break
+                    case TRAINING_MODE.UPGRADE:
+                        populateCountToUI(unitCountMap[2]);
+                        break
+                }
+            })
+        })
+}
+
+const refreshDisplayHTML = (elm: HTMLElement, names: string[]) => {
+    query('div#unit-display', elm).map(el => el as HTMLDivElement)
+        .then(div => {
+            div.outerHTML = inputDisplayHtmlTemplate(...names)
+        })
+}
+
 //TODO: tie data fetching with category and mode selection
-const getMaxTrainableUnitCount = async (category: Unit) => {
+const getMaxTrainableUnitCount = async (category: UNIT_CATEGORY) => {
     switch (category) {
-        case 'Yali':
-            await fetchYali()
+        case UNIT_CATEGORY.YARI:
+            await fetchFromFacility('area[title^="足軽兵舎"]')
             break
-        case 'Yumi':
-            await fetchYumi()
+        case UNIT_CATEGORY.YUMI:
+            await fetchFromFacility('area[title^="弓兵舎"]')
             break
-        case 'Kiba':
-            await fetchKiba()
+        case UNIT_CATEGORY.KIBA:
+            await fetchFromFacility('area[title^="厩舎"]')
             break
-        case 'Kaji':
-            await fetchKaji()
+        case UNIT_CATEGORY.KAJI:
+            await fetchFromFacility('area[title^="兵器鍛冶"]')
             break
     }
 }
 
-// TODO: default tab will be normal training mode
-// need to find a better way to fetch maximum trainable quantity from all three training mode
-const fetchYali = async () => {
-    query('area[title^="足軽兵舎"]')
-        .map(el => el as HTMLAreaElement)
-        .then(elem => {
-            const facility = new Facility(elem)
-        //    facility.trainUnit()
-            const url = elem.href + '#tab1' // default to #tab1
-            get(url).then(doc => {
-                getMaxPossibleQuantity(doc, 'Yali' as Unit)
-                populateCountToUI(unitCountMap)
-            })
-        })
-}
-
-const fetchYumi = async () => {
-    query('area[title^="弓兵舎"]')
-        .map(el => el as HTMLAreaElement)
-        .then(elem => {
-            const facility = new Facility(elem)
-            const url = elem.href + '#tab1'
-            get(url).then(doc => {
-                getMaxPossibleQuantity(doc, 'Yumi' as Unit)
-                populateCountToUI(unitCountMap)
-            })
-        })
-}
-
-const fetchKiba = async () => {
-    query('area[title^="厩舎"]')
-        .map(el => el as HTMLAreaElement)
-        .then(elem => {
-            const facility = new Facility(elem)
-            const url = elem.href + '#tab1'
-            get(url).then(doc => {
-                getMaxPossibleQuantity(doc,  'Kiba' as Unit)
-                populateCountToUI(unitCountMap)
-            })
-        })
-}
-
-const fetchKaji = async () => {
-    query('area[title^="兵器鍛冶"]')
+const fetchFromFacility = async (target: string) => {
+    query(target)
         .map(el => el as HTMLAreaElement)
         .then(facility => {
             const url = facility.href
             get(url).then(doc => {
-                getMaxPossibleQuantity(doc, 'Kaji' as Unit)
-                populateCountToUI(unitCountMap)
+                getMaxPossibleQuantity(doc)
+                populateCountToUI(unitCountMap[currentSelectedMode])
             })
         })
 }
-
 /*
  * @method getMaxPossiblequantity
  * @param doc Document
@@ -266,7 +211,7 @@ const fetchKaji = async () => {
  * @param unit: Unit differentiate what variable to use for storing unit training information
  */
 // TODO: refactor to a better way of processing and storing unit training variable
-const getMaxPossibleQuantity = (doc: Document,  unit: Unit) => {
+const getMaxPossibleQuantity = (doc: Document) => {
     // get the max possible quantity
     //    const targets = queryAll('span[onclick]', doc)
 
@@ -302,87 +247,49 @@ const getMaxPossibleQuantity = (doc: Document,  unit: Unit) => {
 
     compose(forEach(getQuantity), map(o => o as HTMLFormElement))([...targets])
     //TODO: figure out how to get the type correctly for 'compose'
+    //for now split by 3 as generally there are 3 levels for one type of unit, in conjunction with mode selection
     unitCountMap = splitEvery(3, zip(unitIdList, possibleUnitCount))
+}
+
+const updateTrainableUnitCount = (elem: string, newValue: string) => {
+    query(elem).map(el => el as HTMLSpanElement).then(
+        span => span.innerText = newValue
+    )
 }
 
 // current solution is to find corresponding element from the merged tuple list by given category
 // so we need to know index information
-const populateCountToUI = (map: [string, string][][]) => {
-    //TODO: figure out how to pass the training mode selection as argument and works nice with rest of
-    //code structure rather than relying on a global variable
-
-    //for now split by 3 as generally there are 3 levels for one type of unit, in conjunction with mode selection
-    let tupleList: [string, string][]
-    switch(currentSelectedMode){
-        case 'normal':
-            tupleList = map[0]
-            break
-        case 'high-speed':
-            tupleList = map[1]
-            break
-        case 'upgrade':
-            tupleList = map[2]
-            break
-    }
-
+// dataMap is a map between unit id and max trainable count, corresponds to training mode being selected
+//TODO: probably we don't even need to switch on current selected category, UI needs to be updated regardless
+const populateCountToUI = (dataMap: [string, string][]) => {
     switch(currentSelectedCategory) {
         case 'spear':
-            query('span[name="low"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = head(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="mid"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(1)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="high"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(2)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            break
         case 'bow':
-            query('span[name="low"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = head(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="mid"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(1)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="high"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(2)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            break
         case 'knight':
-            query('span[name="low"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = head(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="mid"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(1)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="high"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(2)(tupleList) as string[]
-                    span.innerText = last(tuple)
-                })
+            updateTrainableUnitCount('span[name="low"]', last(head(dataMap)))
+            updateTrainableUnitCount('span[name="mid"]', last(dataMap[1]))
+            updateTrainableUnitCount('span[name="high"]', last(dataMap[2]))
             break
         case 'weaponry':
+            query('span[name="low"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = head(dataMap) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="mid"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = nth(1)(dataMap) as string[]
+                    span.innerText = last(tuple)
+                })
+            query('span[name="high"]').map(el => el as HTMLSpanElement)
+                .then(span => {
+                    const tuple = nth(2)(dataMap) as string[]
+                    span.innerText = last(tuple)
+                })
             break
     }
 
 }
-
 
 export default () => {
     Village()
