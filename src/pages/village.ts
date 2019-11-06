@@ -6,8 +6,7 @@ import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
 import { get, post } from '@/utils/io'
 import Optional from '@/utils/tool'
-import { compose, equals, forEach, head, isNil, keys, last, map, nth, pickBy, splitEvery, zip } from 'ramda'
-import forEachObjIndexed from 'ramda/es/forEachObjIndexed'
+import { compose, equals, forEach, forEachObjIndexed, head, isNil, keys, last, map, nth, pickBy, splitEvery, zip } from 'ramda'
 
 // note that weaponry is special as it has more unit types than others
 // TODO: handle 器， 炮 gracefully
@@ -230,7 +229,6 @@ const bindEventToConfirmButton = (container: HTMLElement) => {
     }
 
     compose(forEach(bindEvent), map(el => el as HTMLButtonElement))([...targets])
-
 }
 
 const postToServer = async (quantity: string, toUnitId: string, fromUnitId?: string) => {

@@ -1,10 +1,9 @@
 import {compose} from 'ramda'
 
 // **NOTE**  don't write .catch of fetch block in this file. please use try...catch block in async function
-
-export const get = (url: string, data?: BodyInit): Promise<Response> => fetch(url, {
+// Request with GET/HEAD cannot have body
+export const get = (url: string): Promise<Response> => fetch(url, {
         method: 'GET',
-        body: data,
     })
 
 export const post = (url: string, data: BodyInit): Promise<Response> => fetch(url, {

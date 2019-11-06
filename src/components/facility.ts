@@ -1,4 +1,4 @@
-import { get, post } from '@/utils/io'
+import { getHtml, post } from '@/utils/io'
 import { isNil } from 'ramda'
 /**
  * Modeling facility, mainly focus on unit training ones as others don't have much to do with them but upgrading
@@ -65,13 +65,15 @@ class Facility {
     public x: string | null = null
     public y: string | null = null
     public title: string | null = null
-//    public villageId: string | null = null
-    private postEndpoint: URL | null = null
+    private postEndpoint: URL
 
+    // constructor should explicitly have fields defined, cannot be nested in a subroutine, which applies to postEndpoint here
     constructor(el: HTMLElement) {
         this.dom = el as HTMLAreaElement
         this.title = this.dom.title
-        this.parseLink(this.dom.href)
+        this.postEndpoint = new URL(this.dom.href, document.location.href.slice(0, location.href.lastIndexOf('/')))
+        this.x = this.postEndpoint.searchParams.get('x')
+        this.y = this.postEndpoint.searchParams.get('y')
     }
 
     // simple say if coordinate information is available, we should be able to get the facility
@@ -98,22 +100,8 @@ class Facility {
         }
     }
 
-    public async getUnitInfo():Promise<Document> {
-        console.log(this.postEndpoint)
-        if(this.postEndpoint) {
-            await get(this.postEndpoint.href)
-        } else {
-            return Promise.reject('no endpoint')
-        }
-    }
-
-    /*
-     * Use URL object to access the search parameters in order to extract coordinate info
-     */
-    private parseLink(path: string) {
-        this.postEndpoint = new URL(path, document.location.href.slice(0, location.href.lastIndexOf('/')))
-        this.x = this.postEndpoint.searchParams.get('x')
-        this.y = this.postEndpoint.searchParams.get('y')
+    public async getUnitInfo(): Promise<Document> {
+        return  await getHtml(this.postEndpoint.href)
     }
 
     /* Need to append the hash here to distinguish training mode
@@ -161,22 +149,12 @@ class Facility {
 
         payload.append('unit_id', toUnitId)
         payload.append('count', quantity)
-        // const payload =  {
-        //     x: this.x,
-        //     y: this.y,
-        //     unit_id: toUnitId,
-        //     count: quantity,
-        // } as UnitTraining
 
         switch (trainingMode) {
             case TRAINING_MODE.HIGH_SPEED:
-                // payload.high_speed = '1'
                 payload.append('high_speed', '1')
                 break
             case TRAINING_MODE.UPGRADE:
-                // payload.upgrade = '1'
-                // payload.from = fromUnitId
-                // payload.to = toUnitId
                 payload.append('upgrade', '1')
                 if (fromUnitId) {
                     payload.append('from', fromUnitId)
@@ -185,7 +163,6 @@ class Facility {
                 break
             default:
         }
-
         return payload
     }
 }
