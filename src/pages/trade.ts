@@ -2,8 +2,8 @@ import { ofTrade, RareName, Rarity, TradeCard } from '@/items/card'
 import IconBox from '@/items/icon-box'
 import Icons from '@/items/icons'
 import { createElement, createUnique, getAbsolutePos, parseDom, query, queryAll, setCss } from '@/utils/dom'
-import Optional from '@/utils/tool'
-import { allPass, equals, filter, gte, isNil, map, pipe } from 'ramda'
+import Optional, { safeGet, mapOpt } from '@/utils/tool'
+import { __, allPass, compose, curry, equals, filter, gte, isNil, map, pipe, replace } from 'ramda'
 
 enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
@@ -170,14 +170,21 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
         filterPredicates.push(card => compare(card.rank, filters.rank))
     }
     const filterMethod = allPass(filterPredicates)
-    const r = pipe(
-        map((el: Element) =>
-            el.tagName === 'IMG' ? Optional.of(el.parentElement)
-            .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
-             : el as HTMLTableRowElement),
-        map((row: HTMLTableRowElement) => ofTrade(row)),
-        filter(card => filterMethod(card)))([...cardElements])
-    return r
+    // const r = pipe(
+    //     map((el: Element) =>
+    //         el.tagName === 'IMG' ? Optional.of(el.parentElement)
+    //         .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
+    //          : el as HTMLTableRowElement),
+    //     map((row: HTMLTableRowElement) => ofTrade(row)),
+    //     filter(card => filterMethod(card)))([...cardElements])
+    const selectEL = (el: Element) =>
+        el.tagName === 'IMG' ? el.parentElement : el
+    return compose(
+        filter(filterMethod),
+        map(ofTrade),
+        map(el => el as HTMLTableRowElement),
+        map(selectEL),
+    )([...cardElements])
 }
 
 const renderFoundCards = pipe(findCardBy, render)

@@ -1,5 +1,6 @@
 import { createElement, query } from '@/utils/dom'
-import { compose, curry, is, path } from 'ramda'
+import { mapOpt, safeGet } from '@/utils/tool'
+import { compose, curry, is, partial, path } from 'ramda'
 
 enum StType {
     ATTACK = 'attack_pt',
