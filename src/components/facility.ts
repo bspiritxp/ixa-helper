@@ -67,7 +67,8 @@ class Facility {
     public title: string | null = null
     private postEndpoint: URL
 
-    // constructor should explicitly have fields defined, cannot be nested in a subroutine, which applies to postEndpoint here
+    // constructor should explicitly have fields defined, cannot be nested in a subroutine,
+    // which applies to postEndpoint here
     constructor(el: HTMLElement) {
         this.dom = el as HTMLAreaElement
         this.title = this.dom.title

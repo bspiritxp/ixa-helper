@@ -179,51 +179,34 @@ const bindEventToConfirmButton = (container: HTMLElement) => {
             // Given the HTML structure we have, we'll find the sibling element from the button
             // Ex: Label Input Span Button
             // the value we need is from Input element, so move left twice
-            const spanElement = btn.previousElementSibling as HTMLSpanElement
-            const inputElement = spanElement.previousElementSibling as HTMLInputElement
-//            const labelElement = inputElement.previousElementSibling as HTMLLabelElement
+            if (window.confirm('訓練を開始します。よろしいですか？')) {
+                const spanElement = btn.previousElementSibling as HTMLSpanElement
+                const inputElement = spanElement.previousElementSibling as HTMLInputElement
 
-            // for normal and high speed, the unitCode will be same as toUnitId
-            // as for upgrade, unitCode needs to break down into toUnitId and fromUnitId
-
-            // const unitCode = ALL_UNITS[labelElement.innerText]
-            // const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
-            // let toUnitId: string, fromUnitId: string
-            // if(match) {
-            //     if(equals(match[0], match[1])) {
-            //         toUnitId = match[1]
-            //         console.log('to: ' + toUnitId)
-            //     } else {
-            //         toUnitId = match[2]
-            //         fromUnitId = match[1]
-            //         console.log('from:' + fromUnitId + ' to: ' + toUnitId)
-            //     }
-            // }
-
-            //            return inputElement.value
-            let toUnitId
-            let fromUnitId
-            switch (currentSelectedMode) {
-                case TRAINING_MODE.NORMAL:
-                    const normalData = map(a => a as string[], unitCountMap[0])[+inputElement.id]
-                    toUnitId = head(normalData)
-                    postToServer(inputElement.value, toUnitId)
-                    break
-                case TRAINING_MODE.HIGH_SPEED:
-                    const highSpeedData = map(a => a as string[], unitCountMap[1])[+inputElement.id]
-                    toUnitId = head(highSpeedData)
-                    postToServer(inputElement.value, toUnitId)
-                    break
-                case TRAINING_MODE.UPGRADE:
-                    const upgradeData = map(a => a as string[], unitCountMap[2])[+inputElement.id]
-                    const unitCode = head(upgradeData)
-                    const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
-                    if (match) {
-                        toUnitId = match[2]
-                        fromUnitId = match[1]
-                        postToServer(inputElement.value, toUnitId, fromUnitId)
-                    }
-                    break
+                let toUnitId
+                let fromUnitId
+                switch (currentSelectedMode) {
+                    case TRAINING_MODE.NORMAL:
+                        const normalData = map(a => a as string[], unitCountMap[0])[+inputElement.id]
+                        toUnitId = head(normalData)
+                        postToServer(inputElement.value, toUnitId)
+                        break
+                    case TRAINING_MODE.HIGH_SPEED:
+                        const highSpeedData = map(a => a as string[], unitCountMap[1])[+inputElement.id]
+                        toUnitId = head(highSpeedData)
+                        postToServer(inputElement.value, toUnitId)
+                        break
+                    case TRAINING_MODE.UPGRADE:
+                        const upgradeData = map(a => a as string[], unitCountMap[2])[+inputElement.id]
+                        const unitCode = head(upgradeData)
+                        const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
+                        if (match) {
+                            toUnitId = match[2]
+                            fromUnitId = match[1]
+                            postToServer(inputElement.value, toUnitId, fromUnitId)
+                        }
+                        break
+                }
             }
         })
     }
@@ -304,11 +287,6 @@ const fetchFromFacility = async (target: string) => {
                 getMaxPossibleQuantity(doc)
                 populateCountToUI(unitCountMap[currentSelectedMode])
             })
-            // const url = facility.href
-            // get(url).then(doc => {
-            //     getMaxPossibleQuantity(doc)
-            //     populateCountToUI(unitCountMap[currentSelectedMode])
-            // })
         })
 }
 /*
