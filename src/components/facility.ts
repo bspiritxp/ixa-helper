@@ -1,28 +1,8 @@
-import { post } from '@/utils/io'
-
+import { get, post } from '@/utils/io'
+import { isNil } from 'ramda'
 /**
  * Modeling facility, mainly focus on unit training ones as others don't have much to do with them but upgrading
  */
-
-// Define unit and their corresponding code
-const ALL_UNIT = {
-    足軽: '321',
-    長槍足軽: '322',
-    武士: '323',
-    弓足軽: '325',
-    長弓兵: '326',
-    弓騎馬: '327',
-    騎馬兵: '329',
-    精鋭騎馬: '330',
-    赤備え: '331',
-    破城鎚: '333',
-    攻城櫓: '334',
-    穴太衆: '335',
-    大筒兵: '',
-    鉄砲足軽: '336',
-    騎馬鉄砲: '',
-    焙烙火矢: '',
-}
 
 const YARI = {
     足軽: '321',
@@ -52,8 +32,13 @@ const KAJI: {[key: string]: string} = {
     焙烙火矢: '',
 } as const
 
+// Define unit and their corresponding code
+const ALL_UNITS: {[key: string]: string} = {
+    ...YARI, ...YUMI, ...KIBA, ...KAJI,
+}
+
 export enum UNIT_CATEGORY {
-    YARI, YUMI, KIBA, KAJI
+    YARI, YUMI, KIBA, KAJI,
 }
 
 export enum TRAINING_MODE {
@@ -89,6 +74,14 @@ class Facility {
         this.parseLink(this.dom.href)
     }
 
+    // simple say if coordinate information is available, we should be able to get the facility
+    public isAvailable() {
+        if (isNil(this.x) || isNil(this.y) ) {
+            return false
+        }
+        return true
+    }
+
     public trainUnit(quantity: string, trainingMode: TRAINING_MODE, toUnitId: string, fromUnitId?: string ) {
         switch (trainingMode) {
             case TRAINING_MODE.NORMAL:
@@ -102,6 +95,15 @@ class Facility {
                 break
             default:
                 break
+        }
+    }
+
+    public async getUnitInfo():Promise<Document> {
+        console.log(this.postEndpoint)
+        if(this.postEndpoint) {
+            await get(this.postEndpoint.href)
+        } else {
+            return Promise.reject('no endpoint')
         }
     }
 
@@ -194,4 +196,5 @@ export {
     YUMI,
     KIBA,
     KAJI,
+    ALL_UNITS,
 }
