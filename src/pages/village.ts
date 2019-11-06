@@ -74,15 +74,11 @@ const Village = () => {
         const updatedSelectionHTML = initiateSelectOptions()
         unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...keys(YARI))
         box.append(unitTrainingDiv)
-
-        // initialize unit count map, default to Yari
-        getMaxTrainableUnitCount(UNIT_CATEGORY.YARI)
     })
 
     bindEventToCategorySelection(unitTrainingDiv)
     bindEventToModeSelection(unitTrainingDiv)
     bindEventToConfirmButton(unitTrainingDiv)
-
 }
 
 const initiateSelectOptions = (): string => {
@@ -123,7 +119,6 @@ const bindEventToCategorySelection = (container: HTMLElement) => {
     query('select#category', container).map(el => el as HTMLSelectElement)
         .then( selection => {
             selection.addEventListener('change', event => {
-//                const triggeredElement = event.target as HTMLSelectElement
                 currentSelectedCategory = +selection.value as UNIT_CATEGORY
                 switch (currentSelectedCategory) {
                     case UNIT_CATEGORY.YARI:
@@ -155,13 +150,13 @@ const bindEventToModeSelection = (container: HTMLElement) => {
                 currentSelectedMode = +triggeredElement.value as TRAINING_MODE
                 switch (currentSelectedMode) {
                     case TRAINING_MODE.NORMAL:
-                        populateCountToUI(unitCountMap[0])
+                        populateCountToUI(unitCountMap[currentSelectedMode])
                         break
                     case TRAINING_MODE.HIGH_SPEED:
-                        populateCountToUI(unitCountMap[1])
+                        populateCountToUI(unitCountMap[currentSelectedMode])
                         break
                     case TRAINING_MODE.UPGRADE:
-                        populateCountToUI(unitCountMap[2])
+                        populateCountToUI(unitCountMap[currentSelectedMode])
                         break
                 }
             })
@@ -229,6 +224,10 @@ const postToServer = async (quantity: string, toUnitId: string, fromUnitId?: str
             await postToFacility('area[title^="兵器鍛冶"]', quantity, toUnitId, fromUnitId)
             break
     }
+
+    // Refresh the data first then UI so that it displays the right quantity
+    getMaxTrainableUnitCount(currentSelectedCategory)
+
 }
 
 const postToFacility = async (target: string, quantity: string, toUnitId: string, fromUnitId?: string) => {
