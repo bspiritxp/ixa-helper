@@ -4,9 +4,8 @@ import { ALL_UNITS, Facility, KAJI, KIBA, TRAINING_MODE, UNIT_CATEGORY,
          YUMI} from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
-import { get, post } from '@/utils/io'
 import Optional from '@/utils/tool'
-import { compose, equals, forEach, forEachObjIndexed, head, isNil, keys, last, map, nth, pickBy, splitEvery, zip } from 'ramda'
+import { compose, equals, forEach, forEachObjIndexed, head, isNil, keys, last, map, nth, splitEvery, zip } from 'ramda'
 
 // note that weaponry is special as it has more unit types than others
 // TODO: handle 器， 炮 gracefully
@@ -68,17 +67,21 @@ const Village = () => {
         .filter(el => el.value === '' )
         .then(partLocation => partLocation.value = cv.id ? cv.id.toString() : '')
 
-    const unitTrainingDiv = createElement('div', 'unitTraining')
+    cv.hasArsenal().then(hasArsenal => {
+        if (hasArsenal) {
+            const unitTrainingDiv = createElement('div', 'unitTraining')
 
-    query('#box').then(box => {
-        const updatedSelectionHTML = initiateSelectOptions()
-        unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...keys(YARI))
-        box.append(unitTrainingDiv)
+            query('#box').then(box => {
+                const updatedSelectionHTML = initiateSelectOptions()
+                unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...keys(YARI))
+                box.append(unitTrainingDiv)
+            })
+
+            bindEventToCategorySelection(unitTrainingDiv)
+            bindEventToModeSelection(unitTrainingDiv)
+            bindEventToConfirmButton(unitTrainingDiv)
+        }
     })
-
-    bindEventToCategorySelection(unitTrainingDiv)
-    bindEventToModeSelection(unitTrainingDiv)
-    bindEventToConfirmButton(unitTrainingDiv)
 }
 
 const initiateSelectOptions = (): string => {
@@ -174,34 +177,32 @@ const bindEventToConfirmButton = (container: HTMLElement) => {
             // Given the HTML structure we have, we'll find the sibling element from the button
             // Ex: Label Input Span Button
             // the value we need is from Input element, so move left twice
-            if (window.confirm('訓練を開始します。よろしいですか？')) {
-                const spanElement = btn.previousElementSibling as HTMLSpanElement
-                const inputElement = spanElement.previousElementSibling as HTMLInputElement
+            const spanElement = btn.previousElementSibling as HTMLSpanElement
+            const inputElement = spanElement.previousElementSibling as HTMLInputElement
 
-                let toUnitId
-                let fromUnitId
-                switch (currentSelectedMode) {
-                    case TRAINING_MODE.NORMAL:
-                        const normalData = map(a => a as string[], unitCountMap[0])[+inputElement.id]
-                        toUnitId = head(normalData)
-                        postToServer(inputElement.value, toUnitId)
-                        break
-                    case TRAINING_MODE.HIGH_SPEED:
-                        const highSpeedData = map(a => a as string[], unitCountMap[1])[+inputElement.id]
-                        toUnitId = head(highSpeedData)
-                        postToServer(inputElement.value, toUnitId)
-                        break
-                    case TRAINING_MODE.UPGRADE:
-                        const upgradeData = map(a => a as string[], unitCountMap[2])[+inputElement.id]
-                        const unitCode = head(upgradeData)
-                        const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
-                        if (match) {
-                            toUnitId = match[2]
-                            fromUnitId = match[1]
-                            postToServer(inputElement.value, toUnitId, fromUnitId)
-                        }
-                        break
-                }
+            let toUnitId
+            let fromUnitId
+            switch (currentSelectedMode) {
+                case TRAINING_MODE.NORMAL:
+                    const normalData = map(a => a as string[], unitCountMap[0])[+inputElement.id]
+                    toUnitId = head(normalData)
+                    postToServer(inputElement.value, toUnitId)
+                    break
+                case TRAINING_MODE.HIGH_SPEED:
+                    const highSpeedData = map(a => a as string[], unitCountMap[1])[+inputElement.id]
+                    toUnitId = head(highSpeedData)
+                    postToServer(inputElement.value, toUnitId)
+                    break
+                case TRAINING_MODE.UPGRADE:
+                    const upgradeData = map(a => a as string[], unitCountMap[2])[+inputElement.id]
+                    const unitCode = head(upgradeData)
+                    const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
+                    if (match) {
+                        toUnitId = match[2]
+                        fromUnitId = match[1]
+                        postToServer(inputElement.value, toUnitId, fromUnitId)
+                    }
+                    break
             }
         })
     }
