@@ -1,33 +1,35 @@
 import { ALL_UNITS, Facility, TRAINING_MODE, UNIT_CATEGORY,
          YARI,
-         YARI_UPGRADE,
          YUMI,
-         YUMI_UPGRADE,
          KIBA,
-         KIBA_UPGRADE,
          KAJI,
-         KAJI_UPGRADE,
        } from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
-import Optional from '@/utils/tool'
-import { compose, equals, forEach, forEachObjIndexed, head, isNil, keys, last, map, nth, splitEvery, zip } from 'ramda'
-
-// note that weaponry is special as it has more unit types than others
-// TODO: handle 器， 炮 gracefully
+import { compose, equals, forEach, forEachObjIndexed, head, invert, prop, isNil, map } from 'ramda'
 
 let currentSelectedCategory = UNIT_CATEGORY.NO_SELECT
 let currentSelectedMode = TRAINING_MODE.NORMAL // default to normal
 
-/** Data structure to hold unit -> max trainable count relation
- * data is merged from two set of meta data
- * first is the unit id, in the form of string  ex: ['321', '322', ...]
- * second is max trainable count, in the form of string array, ['(1000)', '(200)',...]
- * then we zip them up to form [['321', '(1000)', ['322', '(200')]],
- * eventually we'll split them into groups by every other 3 tuples because each group will
- * represent the max trainable count for 'normal', 'high_speed', 'upgrade', respectively
- */
-let unitCountMap: Array<Array<[string, string]>>
+const mainContainer = 'div#unitTraining'
+
+/**
+ * Data structure to hold mapping between training mode, unit id and max trainable quantity
+ * {
+ *     normal: {
+ *         '321': '(123)'
+ *         ...
+ *     },
+ *     high: {
+ *         '321': '(123)'
+ *         ...
+ *     },
+ *     upgrade: {
+ *         '123': '(313)'
+ *     }
+ * }
+*/
+let unitDataMap: {[key:string]:{[key: string]: string}}
 
 const UnitCategory: {[key: string]: string} = {
     類別: '0',
@@ -46,24 +48,18 @@ const TraningMode: {[key: string]: string} = {
 const SELECTION_HTML = `
 <div>
 <select id="category">
-
 </select>
+
 <select id="mode">
 </select>
 </div>
-`
-const inputDisplayHtmlTemplate = (...names: string[]) => `
 <div id="unit-display">
-<label style="color:white">${names[0]}</label> <input id="0" type="text" size="6" maxlength="8">
-<span name="low" style="color:white;text-decoration:underline;cursor:pointer"></span>
-<button type="button">確認</button><br>
-<label style="color:white">${names[1]}</label> <input id="1" type="text" size="6" maxlength="8">
-<span name="mid" style="color:white;text-decoration:underline;cursor:pointer"></span>
-<button type="button">確認</button><br>
-<label style="color:white">${names[2]}</label> <input id="2" type="text" size="6" maxlength="8">
-<span name="high" style="color:white;text-decoration:underline;cursor:pointer"></span>
-<button type="button">確認</button><br>
 </div>
+`
+const unitTrainingDataRowTemplate = (name: string, quantity: string) => `
+<label style="color:white">${name}</label> <input id="0" type="text" size="4" maxlength="8">
+<span name="low" style="color:white;text-decoration:underline;cursor:pointer">${quantity}</span>
+<button type="button">確認</button><br>
 `
 
 const Village = () => {
@@ -80,13 +76,12 @@ const Village = () => {
 
             query('#box').then(box => {
                 const updatedSelectionHTML = initiateSelectOptions()
-                unitTrainingDiv.innerHTML = updatedSelectionHTML + inputDisplayHtmlTemplate(...keys(YARI))
+                unitTrainingDiv.innerHTML = updatedSelectionHTML
                 box.append(unitTrainingDiv)
             })
 
             bindEventToCategorySelection(unitTrainingDiv)
             bindEventToModeSelection(unitTrainingDiv)
-            bindEventToConfirmButton(unitTrainingDiv)
         }
     })
 }
@@ -132,19 +127,17 @@ const bindEventToCategorySelection = (container: HTMLElement) => {
                 currentSelectedCategory = +selection.value as UNIT_CATEGORY
                 switch (currentSelectedCategory) {
                     case UNIT_CATEGORY.YARI:
-                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
+                        // async call so we need to bind event after promise is resolved
+                        // which is done nested in callee instead of writing then block
                         getMaxTrainableUnitCount(UNIT_CATEGORY.YARI)
                         break
                     case UNIT_CATEGORY.YUMI:
-                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.YUMI)
                         break
                     case UNIT_CATEGORY.KIBA:
-                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.KIBA)
                         break
-                    case UNIT_CATEGORY.KAJI: // might need to separate 器, 炮
-                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
+                    case UNIT_CATEGORY.KAJI:
                         getMaxTrainableUnitCount(UNIT_CATEGORY.KAJI)
                         break
                 }
@@ -161,18 +154,17 @@ const bindEventToModeSelection = (container: HTMLElement) => {
                 if(currentSelectedCategory !== UNIT_CATEGORY.NO_SELECT) {
                     switch (currentSelectedMode) {
                         case TRAINING_MODE.NORMAL:
-                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
-                            populateCountToUI(unitCountMap[currentSelectedMode])
+                            buildUI(unitDataMap['normal'])
                             break
-                        case TRAINING_MODE.HIGH_SPEED:
-                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
-                            populateCountToUI(unitCountMap[currentSelectedMode])
+                        case TRAINING_MODE.HIGH:
+                            buildUI(unitDataMap['high'])
                             break
                         case TRAINING_MODE.UPGRADE:
-                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
-                            populateCountToUI(unitCountMap[currentSelectedMode])
+                            buildUI(unitDataMap['upgrade'])
                             break
                     }
+                    bindEventToMaxQuantitySpan(container)
+                    bindEventToConfirmButton(container)
                 }
             })
         })
@@ -181,7 +173,6 @@ const bindEventToModeSelection = (container: HTMLElement) => {
 /*
  * Bind onclick event to buttons to process unit training, further alert window will pop up to confirm the action
  */
-// TODO: Disable button if number is zero
 const bindEventToConfirmButton = (container: HTMLElement) => {
     const targets = queryAll('div#unit-display button', container)
     const bindEvent = (btn: HTMLButtonElement) => {
@@ -191,23 +182,22 @@ const bindEventToConfirmButton = (container: HTMLElement) => {
             // the value we need is from Input element, so move left twice
             const spanElement = btn.previousElementSibling as HTMLSpanElement
             const inputElement = spanElement.previousElementSibling as HTMLInputElement
+            // Get the label so that we can determine the unit id
+            const labelElement = inputElement.previousElementSibling as HTMLLabelElement
 
             let toUnitId
             let fromUnitId
             switch (currentSelectedMode) {
                 case TRAINING_MODE.NORMAL:
-                    const normalData = map(a => a as string[], unitCountMap[0])[+inputElement.id]
-                    toUnitId = head(normalData)
+                    toUnitId = getUnitCode(labelElement.innerText)
                     postToServer(inputElement.value, toUnitId)
                     break
-                case TRAINING_MODE.HIGH_SPEED:
-                    const highSpeedData = map(a => a as string[], unitCountMap[1])[+inputElement.id]
-                    toUnitId = head(highSpeedData)
+                case TRAINING_MODE.HIGH:
+                    toUnitId = getUnitCode(labelElement.innerText)
                     postToServer(inputElement.value, toUnitId)
                     break
                 case TRAINING_MODE.UPGRADE:
-                    const upgradeData = map(a => a as string[], unitCountMap[2])[+inputElement.id]
-                    const unitCode = head(upgradeData)
+                    const unitCode = getUnitCode(labelElement.innerText)
                     const match = (/(\d{3})_?(\d{3})?/).exec(unitCode)
                     if (match) {
                         toUnitId = match[2]
@@ -238,17 +228,20 @@ const postToServer = async (quantity: string, toUnitId: string, fromUnitId?: str
             break
     }
 
-    // Refresh the data first then UI so that it displays the right quantity
-    getMaxTrainableUnitCount(currentSelectedCategory)
-
 }
 
 const postToFacility = async (target: string, quantity: string, toUnitId: string, fromUnitId?: string) => {
     query(target).map(el => el as HTMLAreaElement).then(facElem => {
         const facility  = new Facility(facElem)
         facility.trainUnit(quantity, currentSelectedMode, toUnitId, fromUnitId)
+
+        // Refresh the data first then UI so that it displays the right quantity
+        //TODO: possibly to rearrange the promise chain so that the refresh would happen right after the first click
+        // not second
+        getMaxTrainableUnitCount(currentSelectedCategory)
     })
 }
+
 // Note: Label Input Span Button
 const bindEventToMaxQuantitySpan = (container: HTMLElement) => {
     const targets = queryAll('div#unit-display span', container)
@@ -261,16 +254,6 @@ const bindEventToMaxQuantitySpan = (container: HTMLElement) => {
     }
 
     compose(forEach(bindEvent), map(el => el as HTMLSpanElement))([...targets])
-}
-
-const refreshDisplayHTML = (container: HTMLElement, names: string[]) => {
-    query('div#unit-display', container).map(el => el as HTMLDivElement)
-        .then(div => {
-            div.outerHTML = inputDisplayHtmlTemplate(...names)
-            // need to rebind events on buttons and spans  as we are refreshing the content
-            bindEventToConfirmButton(container)
-            bindEventToMaxQuantitySpan(container)
-        })
 }
 
 const getMaxTrainableUnitCount = async (category: UNIT_CATEGORY) => {
@@ -296,114 +279,150 @@ const fetchFromFacility = async (target: string) => {
         .then(facElem => {
             const facility = new Facility(facElem)
             facility.getUnitInfo().then(doc => {
-                getMaxPossibleQuantity(doc)
-                populateCountToUI(unitCountMap[currentSelectedMode])
+                getPossibleQuantity(doc) //new data structure
+                buildUI(unitDataMap[TRAINING_MODE[currentSelectedMode].toLowerCase()])
+                // Rebind event as we refresh the content
+                const container = query(mainContainer).o as HTMLElement
+                bindEventToMaxQuantitySpan(container)
+                bindEventToConfirmButton(container)
             })
         })
 }
-/*
- * @method getMaxPossiblequantity
- * @param doc Document
- * @param mapping {[k:string]: string} mapping object from unit level to unit code
- * @param unit: Unit differentiate what variable to use for storing unit training information
- */
-// TODO: refactor to a better way of processing and storing unit training variable
-const getMaxPossibleQuantity = (doc: Document) => {
-    // get the max possible quantity
-    // The idea is to form a list so that
-    // [a, b, c], [1, 2, 3] => [[a, 1], [b, 2], [c, 3]]
-    // where a, b, c are unit id, 1, 2, 3 are possible unit count
-    const unitIdList: string[] = []
-    const possibleUnitCount: string[] = []
+
+/** construct a data map to hold max trainable unit information
+ * {
+ *     normal: {
+ *         '321': '(123)'
+ *         ...
+ *     },
+ *     high: {
+ *         '321': '(123)'
+ *         ...
+ *     },
+ *     upgrade: {
+ *         '123': '(313)'
+ *     }
+ * }
+ * regular expression to capture information we need /(high|upgrade)?\[(\d{3})_?(\d{3})?\]$/
+ * normal training will have id pattern 'unit_value[xxx]'
+ * match group:
+ * full match '[xxx]'
+ * group two 'xxx'
+ *
+ * high speed training will have id pattern 'unit_value_high[xxx]'
+ * match group:
+ * full match 'high[xxx]'
+ * group one 'high'
+
+ * upgrade training will have id pattern 'unit_value_upgrade[xxx_yyy]'
+ * full match 'upgrade[xxx_yyy]
+ * group one 'upgrade'
+ * group two 'xxx'
+ * group three 'yyy'
+ *
+ * in the case of no trainable unit for a particular unit at a given time, simply ignore it
+ * as the final display name rendering will be dynamic, depending on what's available from
+ * the data map we are constructing here
+ *
+ **/
+const getPossibleQuantity = (doc: Document) => {
+    const regex = /(high|upgrade)?\[(\d{3})_?(\d{3})?\]$/
+    let normal:{[key: string]: string } = {}
+    let high: {[key: string]: string } = {}
+    let upgrade: {[key: string]: string } = {}
     const targets = queryAll('form[name="createUnitForm"]', doc)
-    const getQuantity = (form: HTMLFormElement) => {
-        const match  = (/\(\d+\)/).exec(form.innerText.trim())
-        isNil(match) ? possibleUnitCount.push('(0)') : possibleUnitCount.push(match[0])
-        query('input', form).map(el => el as HTMLInputElement).thenOrElse( input => {
+    const constructDataMap = (form: HTMLFormElement) => {
+        query('input', form).map(el => el as HTMLInputElement).then(input => {
             const examString = input.id
-            const matchedUnitIds = (/(\d{3})_?(\d{3})?/).exec(examString)
-            let toUnitId: string
-            let fromUnitId: string
-            if (matchedUnitIds) { // not likely to have no match
-                if (equals(matchedUnitIds[0], matchedUnitIds[1])) { // normal or high speed training
-                    toUnitId = matchedUnitIds[1]  // full match and first group match will be the same
-                    unitIdList.push(toUnitId)
-                } else {
-                    toUnitId = matchedUnitIds[2]
-                    fromUnitId = matchedUnitIds[1]
-                    unitIdList.push(fromUnitId + '_' + toUnitId)
+        const quantityMatch  = (/\(\d+\)/).exec(form.innerText.trim())
+
+            // Exam group one to determine training mode
+            // normal -> undefined
+            // high -> 'high'
+            // upgrade -> 'upgrade'
+            const unitCodeMatch = regex.exec(examString)
+            if(unitCodeMatch && quantityMatch) {
+                if(isNil(unitCodeMatch[1])){
+                    normal[unitCodeMatch[2]] = quantityMatch[0]
+                } else if (equals(unitCodeMatch[1], 'high')) {
+                    high[unitCodeMatch[2]] = quantityMatch[0]
+                } else if (equals(unitCodeMatch[1], 'upgrade')) {
+                    upgrade[unitCodeMatch[2] + '_' + unitCodeMatch[3]] = quantityMatch[0]
                 }
             }
-        },
-                                                                           () => {
-                                                                               unitIdList.push('-1')// 兵士数が不足しています
-                                                                           })
+
+        })
+    }
+    const mergeAll = () => {
+        return {
+            'normal': normal,
+            'high': high,
+            'upgrade': upgrade,
+        }
     }
 
-    compose(forEach(getQuantity), map(o => o as HTMLFormElement))([...targets])
-    // TODO: figure out how to get the type correctly for 'compose'
-    // for now split by 3 as generally there are 3 levels for one type of unit, in conjunction with mode selection
-    unitCountMap = splitEvery(3, zip(unitIdList, possibleUnitCount))
+    unitDataMap = compose(mergeAll, forEach(constructDataMap), map(o => o as HTMLFormElement))([...targets])
 }
 
-const updateTrainableUnitCount = (elem: string, newValue: string) => {
-    query(elem).map(el => el as HTMLSpanElement).then(
-        span => span.innerText = newValue,
-    )
-}
-
-// current solution is to find corresponding element from the merged tuple list by given category
-// so we need to know index information
-// dataMap is a map between unit id and max trainable count, corresponds to training mode being selected
-// TODO: probably we don't even need to switch on current selected category, UI needs to be updated regardless
-const populateCountToUI = (dataMap: Array<[string, string]>) => {
-    switch (currentSelectedCategory) {
+// Build the complete unit training row UI
+const buildUI = (data: {[key: string]: string}) => {
+    let completeUI = ''
+    switch(currentSelectedCategory) {
         case UNIT_CATEGORY.YARI:
+            const buildYARI = (quantity: string, k: string|number) => {
+                const displayName = prop(k, YARI)
+                completeUI += makeRow(displayName, quantity)
+            }
+            forEachObjIndexed(buildYARI , data)
+            break
         case UNIT_CATEGORY.YUMI:
+            const buildYUMI = (quantity: string, k: string|number) => {
+                const displayName = prop(k, YUMI)
+                completeUI += makeRow(displayName, quantity)
+            }
+            forEachObjIndexed(buildYUMI , data)
+            break
         case UNIT_CATEGORY.KIBA:
-            updateTrainableUnitCount('span[name="low"]', last(head(dataMap)))
-            updateTrainableUnitCount('span[name="mid"]', last(dataMap[1]))
-            updateTrainableUnitCount('span[name="high"]', last(dataMap[2]))
+            const buildKIBA = (quantity: string, k: string|number) => {
+                const displayName = prop(k, KIBA)
+                completeUI += makeRow(displayName, quantity)
+            }
+            forEachObjIndexed(buildKIBA , data)
             break
         case UNIT_CATEGORY.KAJI:
-            query('span[name="low"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = head(dataMap) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="mid"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(1)(dataMap) as string[]
-                    span.innerText = last(tuple)
-                })
-            query('span[name="high"]').map(el => el as HTMLSpanElement)
-                .then(span => {
-                    const tuple = nth(2)(dataMap) as string[]
-                    span.innerText = last(tuple)
-                })
+            const buildKAJI = (quantity: string, k: string|number) => {
+                const displayName = prop(k, KAJI)
+                completeUI += makeRow(displayName, quantity)
+            }
+            forEachObjIndexed(buildKAJI, data)
             break
     }
 
+    query('div#unit-display').map(el => el as HTMLDivElement). then( div => {
+        div.innerHTML = completeUI
+    })
 }
 
 // Utils
-const isUpgradeMode = (mode: TRAINING_MODE) => {
-    return TRAINING_MODE.UPGRADE === mode
+// Given a display name find the corresponding unit code, either xxx or xxx_yyy
+// depending on current selected category and mode
+const getUnitCode = (displayName: string): string => {
+    switch(currentSelectedCategory) {
+        case UNIT_CATEGORY.YARI:
+            return head(prop(displayName, invert(YARI)))
+        case UNIT_CATEGORY.YUMI:
+            return head(prop(displayName, invert(YUMI)))
+        case UNIT_CATEGORY.KIBA:
+            return head(prop(displayName, invert(KIBA)))
+        case UNIT_CATEGORY.KAJI:
+            return head(prop(displayName, invert(KAJI)))
+        default:
+            return ''
+    }
 }
 
-const getUnitTrainingDisplayName = (category: UNIT_CATEGORY, mode: TRAINING_MODE): string[] => {
-    switch(category) {
-        case UNIT_CATEGORY.YARI:
-            return isUpgradeMode(mode) ? keys(YARI_UPGRADE) : keys(YARI)
-        case UNIT_CATEGORY.YUMI:
-            return isUpgradeMode(mode) ? keys(YUMI_UPGRADE) : keys(YUMI)
-        case UNIT_CATEGORY.KIBA:
-            return isUpgradeMode(mode) ? keys(KIBA_UPGRADE) : keys(KIBA)
-        case UNIT_CATEGORY.KAJI:
-            return isUpgradeMode(mode) ? keys(KAJI_UPGRADE) : keys(KAJI)
-        default:
-            return ['']
-    }
+const makeRow = (name: string, quantity: string): string => {
+    return unitTrainingDataRowTemplate(name, quantity)
 }
 
 export default () => {
