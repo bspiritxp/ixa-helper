@@ -1,7 +1,13 @@
-import { ALL_UNITS, Facility, KAJI, KIBA, TRAINING_MODE, UNIT_CATEGORY,
-         // types below
+import { ALL_UNITS, Facility, TRAINING_MODE, UNIT_CATEGORY,
          YARI,
-         YUMI} from '@/components/facility'
+         YARI_UPGRADE,
+         YUMI,
+         YUMI_UPGRADE,
+         KIBA,
+         KIBA_UPGRADE,
+         KAJI,
+         KAJI_UPGRADE,
+       } from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
 import Optional from '@/utils/tool'
@@ -10,7 +16,7 @@ import { compose, equals, forEach, forEachObjIndexed, head, isNil, keys, last, m
 // note that weaponry is special as it has more unit types than others
 // TODO: handle 器， 炮 gracefully
 
-let currentSelectedCategory: UNIT_CATEGORY
+let currentSelectedCategory = UNIT_CATEGORY.NO_SELECT
 let currentSelectedMode = TRAINING_MODE.NORMAL // default to normal
 
 /** Data structure to hold unit -> max trainable count relation
@@ -24,10 +30,11 @@ let currentSelectedMode = TRAINING_MODE.NORMAL // default to normal
 let unitCountMap: Array<Array<[string, string]>>
 
 const UnitCategory: {[key: string]: string} = {
-    槍: '0',
-    弓: '1',
-    馬: '2',
-    兵器: '3',
+    類別: '0',
+    槍: '1',
+    弓: '2',
+    馬: '3',
+    兵器: '4',
 }
 
 const TraningMode: {[key: string]: string} = {
@@ -39,7 +46,7 @@ const TraningMode: {[key: string]: string} = {
 const SELECTION_HTML = `
 <div>
 <select id="category">
-<option>兵类</option>
+
 </select>
 <select id="mode">
 </select>
@@ -125,19 +132,19 @@ const bindEventToCategorySelection = (container: HTMLElement) => {
                 currentSelectedCategory = +selection.value as UNIT_CATEGORY
                 switch (currentSelectedCategory) {
                     case UNIT_CATEGORY.YARI:
-                        refreshDisplayHTML(container, keys(YARI))
+                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.YARI)
                         break
                     case UNIT_CATEGORY.YUMI:
-                        refreshDisplayHTML(container, keys(YUMI))
+                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.YUMI)
                         break
                     case UNIT_CATEGORY.KIBA:
-                        refreshDisplayHTML(container, keys(KIBA))
+                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.KIBA)
                         break
                     case UNIT_CATEGORY.KAJI: // might need to separate 器, 炮
-                        refreshDisplayHTML(container, ['破城鎚', '攻城櫓', '穴太衆'])
+                        refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
                         getMaxTrainableUnitCount(UNIT_CATEGORY.KAJI)
                         break
                 }
@@ -151,16 +158,21 @@ const bindEventToModeSelection = (container: HTMLElement) => {
             selection.addEventListener('change', event => {
                 const triggeredElement = event.target as HTMLSelectElement
                 currentSelectedMode = +triggeredElement.value as TRAINING_MODE
-                switch (currentSelectedMode) {
-                    case TRAINING_MODE.NORMAL:
-                        populateCountToUI(unitCountMap[currentSelectedMode])
-                        break
-                    case TRAINING_MODE.HIGH_SPEED:
-                        populateCountToUI(unitCountMap[currentSelectedMode])
-                        break
-                    case TRAINING_MODE.UPGRADE:
-                        populateCountToUI(unitCountMap[currentSelectedMode])
-                        break
+                if(currentSelectedCategory !== UNIT_CATEGORY.NO_SELECT) {
+                    switch (currentSelectedMode) {
+                        case TRAINING_MODE.NORMAL:
+                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
+                            populateCountToUI(unitCountMap[currentSelectedMode])
+                            break
+                        case TRAINING_MODE.HIGH_SPEED:
+                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
+                            populateCountToUI(unitCountMap[currentSelectedMode])
+                            break
+                        case TRAINING_MODE.UPGRADE:
+                            refreshDisplayHTML(container, getUnitTrainingDisplayName(currentSelectedCategory,currentSelectedMode))
+                            populateCountToUI(unitCountMap[currentSelectedMode])
+                            break
+                    }
                 }
             })
         })
@@ -298,11 +310,9 @@ const fetchFromFacility = async (target: string) => {
 // TODO: refactor to a better way of processing and storing unit training variable
 const getMaxPossibleQuantity = (doc: Document) => {
     // get the max possible quantity
-    //    const targets = queryAll('span[onclick]', doc)
-
     // The idea is to form a list so that
     // [a, b, c], [1, 2, 3] => [[a, 1], [b, 2], [c, 3]]
-    // where a, b,c are unit id, 1, 2, 3 are possible unit count
+    // where a, b, c are unit id, 1, 2, 3 are possible unit count
     const unitIdList: string[] = []
     const possibleUnitCount: string[] = []
     const targets = queryAll('form[name="createUnitForm"]', doc)
@@ -374,6 +384,26 @@ const populateCountToUI = (dataMap: Array<[string, string]>) => {
             break
     }
 
+}
+
+// Utils
+const isUpgradeMode = (mode: TRAINING_MODE) => {
+    return TRAINING_MODE.UPGRADE === mode
+}
+
+const getUnitTrainingDisplayName = (category: UNIT_CATEGORY, mode: TRAINING_MODE): string[] => {
+    switch(category) {
+        case UNIT_CATEGORY.YARI:
+            return isUpgradeMode(mode) ? keys(YARI_UPGRADE) : keys(YARI)
+        case UNIT_CATEGORY.YUMI:
+            return isUpgradeMode(mode) ? keys(YUMI_UPGRADE) : keys(YUMI)
+        case UNIT_CATEGORY.KIBA:
+            return isUpgradeMode(mode) ? keys(KIBA_UPGRADE) : keys(KIBA)
+        case UNIT_CATEGORY.KAJI:
+            return isUpgradeMode(mode) ? keys(KAJI_UPGRADE) : keys(KAJI)
+        default:
+            return ['']
+    }
 }
 
 export default () => {
