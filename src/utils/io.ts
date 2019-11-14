@@ -1,4 +1,4 @@
-import {compose} from 'ramda'
+import {compose, then} from 'ramda'
 
 // **NOTE**  don't write .catch of fetch block in this file. please use try...catch block in async function
 // Request with GET/HEAD cannot have body
@@ -23,5 +23,7 @@ export const updateDom = (method: VoidFunction): Promise<void> => new Promise((r
 
 const htmlParser = (txt: string) => (new DOMParser()).parseFromString(txt, 'text/html')
 
-export const getText = compose((pr: Promise<Response>) => pr.then(resp => resp.text()), get)
-export const getHtml = compose((pt: Promise<string>) => pt.then(htmlParser), getText)
+// export const getText = compose((pr: Promise<Response>) => pr.then(resp => resp.text()), get)
+export const getText = compose(then(resp => resp.text()), get)
+// export const getHtml = compose((pt: Promise<string>) => pt.then(htmlParser), getText)
+export const getHtml = compose(then(htmlParser), getText)
