@@ -233,12 +233,10 @@ const postToServer = async (quantity: string, toUnitId: string, fromUnitId?: str
 const postToFacility = async (target: string, quantity: string, toUnitId: string, fromUnitId?: string) => {
     query(target).map(el => el as HTMLAreaElement).then(facElem => {
         const facility  = new Facility(facElem)
-        facility.trainUnit(quantity, currentSelectedMode, toUnitId, fromUnitId)
-
-        // Refresh the data first then UI so that it displays the right quantity
-        //TODO: possibly to rearrange the promise chain so that the refresh would happen right after the first click
-        // not second
-        getMaxTrainableUnitCount(currentSelectedCategory)
+        facility.trainUnit(quantity, currentSelectedMode, toUnitId, fromUnitId).then(() => {
+            // Refresh the data first then UI so that it displays the right quantity
+            getMaxTrainableUnitCount(currentSelectedCategory)
+        })
     })
 }
 
@@ -398,7 +396,7 @@ const buildUI = (data: {[key: string]: string}) => {
             break
     }
 
-    query('div#unit-display').map(el => el as HTMLDivElement). then( div => {
+    query('div#unit-display').map(el => el as HTMLDivElement).then( div => {
         div.innerHTML = completeUI
     })
 }

@@ -101,19 +101,16 @@ class Facility {
         return true
     }
 
-    public trainUnit(quantity: string, trainingMode: TRAINING_MODE, toUnitId: string, fromUnitId?: string ) {
+    public trainUnit(quantity: string, trainingMode: TRAINING_MODE, toUnitId: string, fromUnitId?: string ): Promise<Response> {
         switch (trainingMode) {
             case TRAINING_MODE.NORMAL:
-                this.normalTraining(quantity, toUnitId)
-                break
+                return this.normalTraining(quantity, toUnitId)
             case TRAINING_MODE.HIGH:
-                this.speedTraining(quantity, toUnitId)
-                break
+                return this.speedTraining(quantity, toUnitId)
             case TRAINING_MODE.UPGRADE:
-                this.upgradeTraining(quantity, toUnitId, fromUnitId)
-                break
+                return this.upgradeTraining(quantity, toUnitId, fromUnitId)
             default:
-                break
+                return Promise.reject('no matched training mode')
         }
     }
 
