@@ -72,7 +72,6 @@ export default class Report {
                 const matched = match(/(\D+)(\d+)$/, text)
                 this.ress.set(prop(matched[1], RESOURCE_TYPE),
                               compose(Number, head, match(/\d+$/))(text))
-
             }, ressText)
         }
 
