@@ -62,6 +62,4 @@ typings/
 
 .vscode/
 .DS_Store
-*.lock
-package-lock.json
 dist/*.js

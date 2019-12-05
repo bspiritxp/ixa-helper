@@ -1,4 +1,4 @@
-import { map } from 'ramda'
+import { ifElse, map } from 'ramda'
 import { isNullOrUndefined } from 'util'
 
 interface Emptyable {

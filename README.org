@@ -26,7 +26,7 @@ You need:
   :PROPERTIES:
   :CUSTOM_ID: installing
   :END:
-** Install the vesrion of node being provided (see .nvmrc or .node-version)
+** Install the version of node being provided (see .nvmrc or .node-version)
   :PROPERTIES:
   :CUSTOM_ID: installing--version
   :END:

@@ -1,9 +1,9 @@
-import { ofTrade, RareName, Rarity, TradeCard } from '@/items/card'
-import IconBox from '@/items/icon-box'
-import Icons from '@/items/icons'
-import { createElement, createUnique, getAbsolutePos, parseDom, query, queryAll, setCss } from '@/utils/dom'
+import { ofTrade, RareName, Rarity, TradeCard } from '@/components/card'
+import IconBox from '@/components/icon-box'
+import Icons from '@/components/icons'
+import { createElement, createUnique, getAbsolutePos, makeLink, parseDom, query, queryAll, setCss } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { allPass, equals, filter, gte, isNil, map, pipe } from 'ramda'
+import { allPass, equals, filter, forEach, gte, isNil, map, pipe } from 'ramda'
 
 enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
@@ -170,14 +170,21 @@ function findCardBy(filters: FilterOption, doc = document): TradeCard[] {
         filterPredicates.push(card => compare(card.rank, filters.rank))
     }
     const filterMethod = allPass(filterPredicates)
-    const r = pipe(
-        map((el: Element) =>
-            el.tagName === 'IMG' ? Optional.of(el.parentElement)
-            .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
-             : el as HTMLTableRowElement),
-        map((row: HTMLTableRowElement) => ofTrade(row)),
-        filter(card => filterMethod(card)))([...cardElements])
-    return r
+    // const r = pipe(
+    //     map((el: Element) =>
+    //         el.tagName === 'IMG' ? Optional.of(el.parentElement)
+    //         .map((elp: Element) => elp.parentElement as HTMLTableRowElement).get()
+    //          : el as HTMLTableRowElement),
+    //     map((row: HTMLTableRowElement) => ofTrade(row)),
+    //     filter(card => filterMethod(card)))([...cardElements])
+    const selectEL = (el: Element) =>
+        el.tagName === 'IMG' ? el.parentElement : el
+    return compose(
+        filter(filterMethod),
+        map(ofTrade),
+        map(el => el as HTMLTableRowElement),
+        map(selectEL),
+    )([...cardElements])
 }
 
 const renderFoundCards = pipe(findCardBy, render)
@@ -240,7 +247,28 @@ function searchDone() {
 // function addCardModalWindow() {
 //     query(`${SELECTOR.CARD_TABLE} a`)
 // }
+/**
+ * @method  searchByCardNumber
+ */
+const enableSearchByCardNumber = () => {
+    const targets = queryAll('td.fs12')
+    const getCardNumber = (el: HTMLElement) => el.innerText
+    const replaceHTML = (el: HTMLElement) => {
+        const cardNumber = getCardNumber(el)
+        const params = new URLSearchParams()
+        // parameters 't' and 'k' are required by ixa site
+        params.append('t', 'no')
+        params.append('k', cardNumber)
+        // Posting to same page, reuse location.href
+        const link = makeLink(new URL(location.href), params, cardNumber, '查询')
+        el.innerHTML = link.outerHTML
+    }
+    Optional.of([...targets])
+      .map(map(o => o as HTMLElement))
+      .then(forEach(replaceHTML))
+}
 
 export default () => {
-    const filterBox = FilterBox()
+    FilterBox()
+    enableSearchByCardNumber()
 }
