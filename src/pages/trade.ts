@@ -1,9 +1,9 @@
-import { ofTrade, RareName, Rarity, TradeCard } from '@/items/card'
-import IconBox from '@/items/icon-box'
-import Icons from '@/items/icons'
-import { createElement, createUnique, getAbsolutePos, parseDom, query, queryAll, setCss } from '@/utils/dom'
-import Optional, { safeGet, mapOpt } from '@/utils/tool'
-import { __, allPass, compose, curry, equals, filter, gte, isNil, map, pipe, replace } from 'ramda'
+import { ofTrade, RareName, Rarity, TradeCard } from '@/components/card'
+import IconBox from '@/components/icon-box'
+import Icons from '@/components/icons'
+import { createElement, createUnique, getAbsolutePos, makeLink, parseDom, query, queryAll, setCss } from '@/utils/dom'
+import Optional from '@/utils/tool'
+import { allPass, equals, filter, forEach, gte, isNil, map, pipe } from 'ramda'
 
 enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
@@ -247,7 +247,28 @@ function searchDone() {
 // function addCardModalWindow() {
 //     query(`${SELECTOR.CARD_TABLE} a`)
 // }
+/**
+ * @method  searchByCardNumber
+ */
+const enableSearchByCardNumber = () => {
+    const targets = queryAll('td.fs12')
+    const getCardNumber = (el: HTMLElement) => el.innerText
+    const replaceHTML = (el: HTMLElement) => {
+        const cardNumber = getCardNumber(el)
+        const params = new URLSearchParams()
+        // parameters 't' and 'k' are required by ixa site
+        params.append('t', 'no')
+        params.append('k', cardNumber)
+        // Posting to same page, reuse location.href
+        const link = makeLink(new URL(location.href), params, cardNumber, '查询')
+        el.innerHTML = link.outerHTML
+    }
+    Optional.of([...targets])
+      .map(map(o => o as HTMLElement))
+      .then(forEach(replaceHTML))
+}
 
 export default () => {
-    const filterBox = FilterBox()
+    FilterBox()
+    enableSearchByCardNumber()
 }

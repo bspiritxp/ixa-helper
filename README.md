@@ -5,7 +5,7 @@
 2.  [Getting started](#getting-started)
 3.  [Prerequisites](#prerequisites)
 4.  [Installing](#installing)
-    1.  [Install the vesrion of node being provided (see .nvmrc or .node-version)](#installing--version)
+    1.  [Install the version of node being provided (see .nvmrc or .node-version)](#installing--version)
     2.  [Install Yarn](#installing-yarn)
     3.  [Build application](#installing--build-application)
     4.  [Lint](#installing--lint)
@@ -45,7 +45,7 @@ You need:
 
 <a id="installing--version"></a>
 
-## Install the vesrion of node being provided (see .nvmrc or .node-version)
+## Install the version of node being provided (see .nvmrc or .node-version)
 
     nvm use
 

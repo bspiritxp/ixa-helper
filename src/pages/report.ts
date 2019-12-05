@@ -1,4 +1,4 @@
-import { Icons, Report } from '@/items'
+import { Icons, Report } from '@/components'
 import { reports } from '@/utils/data'
 import { createElement, createUnique, query, setCss } from '@/utils/dom'
 import { has } from 'ramda'
