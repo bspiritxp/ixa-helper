@@ -3,7 +3,7 @@ import IconBox from '@/components/icon-box'
 import Icons from '@/components/icons'
 import { createElement, createUnique, getAbsolutePos, makeLink, parseDom, query, queryAll, setCss } from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { allPass, equals, filter, forEach, gte, isNil, map, pipe } from 'ramda'
+import { allPass, compose, equals, filter, forEach, gte, isNil, map, pipe } from 'ramda'
 
 enum SELECTOR {
     FORM_BOX = 'form[name=trade]',
