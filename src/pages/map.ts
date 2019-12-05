@@ -64,23 +64,33 @@ const getMainCastleStatus = async (url: string | undefined) => {
 }
 
 const findMainCastle = (page: HTMLDocument): string => {
-    //so far it looks it'll be the first match
-    const target = queryAll('tr[class="fs14"] td', page)[1] as HTMLTableDataCellElement
-    const findURL = (e: HTMLTableDataCellElement): string => {
-        let r = ''
-        query('a', e).map(el => el as HTMLLinkElement).then(link => {
-            r =  link.href
-        })
-        return r
+    // if attack around,search for '出城', usually the last in the table
+    // defense round, search for '本領', usually the first in table
+    const target = queryAll('tr[class="fs14"]', page)
+    const findURL = (trElements: Array<HTMLTableRowElement>): string => {
+        const size = trElements.length
+        // if last is not '出城', then opponent is defending this around, search for '本領'
+        // first exam the last table row
+        let tableDataElements = trElements[size -1].getElementsByTagName('td')
+        //種類 0	名前 1
+        const type = tableDataElements[0] as HTMLTableDataCellElement
+        if (type.innerText === '出城'){
+            const link = tableDataElements[1].getElementsByTagName('a')[0] as HTMLAnchorElement
+            return link.href
+        } else {
+            tableDataElements = trElements[0].getElementsByTagName('td')
+            const link = tableDataElements[1].getElementsByTagName('a')[0] as HTMLAnchorElement
+            return link.href
+        }
     }
-    return findURL(target)
+    return findURL(map(o => o as HTMLTableRowElement, [...target]))
 }
 
 const getCastleStatus = (page: HTMLDocument): boolean => {
     let r
-    const findStatus = query('.img_path', page).map(o => o as HTMLDivElement).then(div => {
+    query('.img_path', page).map(o => o as HTMLDivElement).then(div => {
         const isFallen = div.classList.contains('icon_now_fall')
         r = isFallen
     })
-    return r? r: false
+    return r ? r: false
 }
