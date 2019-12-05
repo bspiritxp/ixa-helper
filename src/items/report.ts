@@ -21,8 +21,8 @@ enum REPORT_TYPE {
 }
 
 const RESOURCE_TYPE: {[key: string]: string} = {
-    銅: 'money',
-    木: 'wood',
+    銅銭: 'money',
+    木材: 'wood',
     綿: 'wool',
     鉄: 'ingot',
     糧: 'grain',
@@ -66,10 +66,14 @@ export default class Report {
     }
 
     private fetchRess(el: HTMLElement) {
-        const sumary = (ressTexts: string[]) =>
-            forEach((text: string) =>
-                this.ress.set(prop(text[0], RESOURCE_TYPE),
-                    compose(Number, head, match(/\d+$/))(text[0])))
+        //ressText example: ["木材270", "綿270", "鉄270", "糧270"]
+        const sumary = (ressText: string[]) => {
+            forEach((text: string) => {
+                const matched = match(/(\D+)(\d+)$/, text)
+                this.ress.set(prop(matched[1], RESOURCE_TYPE),
+                              compose(Number, head, match(/\d+$/))(text))
+            }, ressText)
+        }
 
         return compose(
             sumary,
