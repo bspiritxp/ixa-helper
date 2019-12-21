@@ -11,9 +11,9 @@ export default (jq$: CallableFunction|null) => {
         const target = query('#mapSubmenu').get() as HTMLElement
         const ulElement = query('#mapSubmenu ul').o as HTMLElement
 
-        const isSubMenuVisibile =  window.getComputedStyle(target).display === 'none' ? false : true
+        const isSubMenuVisible =  window.getComputedStyle(target).display === 'none' ? false : true
 
-        if(isSubMenuVisibile) {
+        if(isSubMenuVisible && !hasCastleStatus(target)) {
             const profilePageURL = getProfileURL()
 
             if(!isEmpty(profilePageURL) && !isNil(profilePageURL)) {
@@ -32,6 +32,10 @@ export default (jq$: CallableFunction|null) => {
     })
 
     return
+}
+
+const hasCastleStatus = (menu: HTMLElement) => {
+    return menu.querySelector('#castleStatus') !== null
 }
 
 const getProfileURL = (): (string| undefined)[] => {
