@@ -22,7 +22,7 @@ enum REPORT_TYPE {
 
 const RESOURCE_TYPE: {[key: string]: string} = {
     銅銭: 'money',
-    木材: 'wood',
+    木: 'wood',
     綿: 'wool',
     鉄: 'ingot',
     糧: 'grain',
