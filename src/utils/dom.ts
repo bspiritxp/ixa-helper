@@ -31,6 +31,13 @@ export const createElementWithStyle = (tagName: string, id: string, className: s
     return element
 }
 
+export const createStyledElement = (tagName: string, id: string, css: {[key: string]: string}) => {
+    const element = document.createElement(tagName)
+    element.id = id
+    setCss(element, css)
+    return element
+}
+
 const appendBody = (el: HTMLElement) => {
     document.body.append(el)
     return el

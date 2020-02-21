@@ -66,7 +66,7 @@ export default class Report {
     }
 
     private fetchRess(el: HTMLElement) {
-        //ressText example: ["木材270", "綿270", "鉄270", "糧270"]
+        // ressText example: ["木材270", "綿270", "鉄270", "糧270"]
         const sumary = (ressText: string[]) => {
             forEach((text: string) => {
                 const matched = match(/(\D+)(\d+)$/, text)
