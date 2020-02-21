@@ -90,6 +90,7 @@ const autoBuildBtn = createStyledElement('button', 'auto-build', configBtnStyle)
 const startAutoBuild = () => {
     autoBuildBtn.disabled = true
     autoBuildBtn.style.backgroundColor = 'coral'
+    autoBuildBtn.textContent = '建設中'
     const targets = queryAll('li[data-village_id]')
     const initVillage = (elem: HTMLElement): Village => {
         return new Village(Optional.of(elem))
@@ -117,7 +118,7 @@ const startAutoBuild = () => {
 
 const addAutoBuildButton = () => {
     autoBuildBtn.onclick = startAutoBuild
-    autoBuildBtn.textContent = '开始建造'
+    autoBuildBtn.textContent = '建設始める'
     query('.sideBoxHead > h4').then(e => e.before(autoBuildBtn))
 }
 
