@@ -1,7 +1,7 @@
 import { Village } from '@/components'
 import {createStyledElement, query, queryAll} from '@/utils/dom'
 import Optional from '@/utils/tool'
-import { compose, map, reduce } from 'ramda'
+import { compose, map, reduce, sortBy } from 'ramda'
 import Router from './pages'
 
 const currentPath = location.pathname
@@ -95,7 +95,17 @@ const startAutoBuild = () => {
         return new Village(Optional.of(elem))
     }
 
-    const villageList = compose(map(initVillage), map(el => el as HTMLElement))([...targets])
+    // place the current selected village at last of the list so that when one-click build finishes
+    // we will be landed on the same page where we initiate the call, otherwise we will land on the last
+    // village on the list after a refresh
+    const currentVillageAtEnd = (elem: HTMLElement) => {
+        const style = elem.getAttribute('class')
+        return style?.includes('on') ? 1 : 0
+    }
+
+    const villageList = compose(map(initVillage),
+                                sortBy(currentVillageAtEnd),
+                                map(el => el as HTMLElement))([...targets])
 
     reduce((chain: Promise<boolean>, task: Village): Promise<boolean> => {
         return chain.then(() => task.initialize())

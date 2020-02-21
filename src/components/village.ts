@@ -72,7 +72,6 @@ export default class Village {
                 // console.log('build capacity reached')
                 return Promise.resolve(true)
             }
-
         })
     }
 
