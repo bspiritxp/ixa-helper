@@ -12,6 +12,7 @@ const lumberProducer = ['木工所', '伐採所']
 const cottonProducer = ['機織り場', '機織り工房']
 const steelProducer = ['たたら場', '高殿']
 const grainProducer = ['水田', '棚田']
+const stockCapacity = ['蔵']
 
 export default class Village {
     public id: number | null = null
@@ -53,7 +54,7 @@ export default class Village {
     // if no capacity is available, do need to initialize facilities
 
     // populate all facilities associated with village
-    public async initialize(): Promise<boolean> {
+    public async initialize(priority?: string): Promise<boolean> {
         return await getHtml(this.getEndpoint().href).then(page => {
             this.setBuildCapacity(page)
             // get everything that has a 'LV', indicating an actionable facility
@@ -67,7 +68,7 @@ export default class Village {
             compose(forEach(populateFacility), map(el => el as HTMLElement))([...targets])
 
             if (this.buildCapacity > 0) {
-                return this.autoBuild()
+                return this.autoBuild(priority)
             } else {
                 // console.log('build capacity reached')
                 return Promise.resolve(true)
@@ -78,7 +79,6 @@ export default class Village {
     // pick two lowest level resource producing facility among facilities, have them start to build
     // priority is what category of resource to build first
     public async autoBuild(priority?: string ): Promise<boolean> {
-        // const groupedFacilities = this.groupFacilities()
         let lowestLevelFacilities: Facility[]
         if (priority) {
             lowestLevelFacilities = this.getLowestLevelFacility(priority)
@@ -86,8 +86,6 @@ export default class Village {
             lowestLevelFacilities = this.getLowestLevelFacility()
 
         }
-        // TODO: associate debug statement with config
-        // console.log(lowestLevelFacilities)
 
         const tasks = map((f: Facility) => {
             return f.build()
@@ -119,10 +117,11 @@ export default class Village {
 
             if (facilityName != null) {
                 return lumberProducer.includes(facilityName) ? 'lumber' :
-                cottonProducer.includes(facilityName) ? 'cotton' :
-                steelProducer.includes(facilityName) ? 'steel' :
-                grainProducer.includes(facilityName) ? 'grain' :
-                arsenal.includes(facilityName) ? 'arsenal' : 'other'
+                    cottonProducer.includes(facilityName) ? 'cotton' :
+                    steelProducer.includes(facilityName) ? 'steel' :
+                    grainProducer.includes(facilityName) ? 'grain' :
+                    stockCapacity.includes(facilityName) ? 'storage' :
+                    arsenal.includes(facilityName) ? 'arsenal' : 'other'
             }
             return 'error'
         })
@@ -137,12 +136,15 @@ export default class Village {
         }
         let selectedCategoryFacilities: Facility[]
         let sortedFacilities: Facility[]
-        if (category) {
-            selectedCategoryFacilities = this.groupFacilities()[category]
-            sortedFacilities = sort(lowToHigh)(selectedCategoryFacilities)
-
-        } else {
-            sortedFacilities = sort(lowToHigh)(filter((f: Facility) => {
+        switch (category) {
+            case 'storage':
+                selectedCategoryFacilities = this.groupFacilities().storage
+                sortedFacilities = sort(lowToHigh)(selectedCategoryFacilities)
+                break
+            case 'resource':
+            case 'none':
+            default:
+                sortedFacilities = sort(lowToHigh)(filter((f: Facility) => {
                 if (f.title) {
                     const facilityName = f.title != null ? f.title.split(' ')[0] : ''
                     return resourceProducers.includes(facilityName)

@@ -73,7 +73,7 @@ const setBuildFinishTime = () => {
 }
 
 const cv = currentVillage()
-const Village = () => {
+const Village = (config?: {[key: string]: any}, jq$?: CallableFunction|null) => {
     if (cv.id === null) { return }
     query('select#select_village')
         .map(el => el as HTMLInputElement)
@@ -96,7 +96,11 @@ const Village = () => {
     })
 
     // enables auto build on current village after refresh
-    cv.initialize()
+    if (config) {
+        cv.initialize(config.buildPriority[cv.id])
+    } else {
+        cv.initialize()
+    }
 }
 
 const initiateSelectOptions = (): string => {
@@ -436,6 +440,6 @@ const makeRow = (name: string, quantity: string): string => {
     return unitTrainingDataRowTemplate(name, quantity)
 }
 
-export default () => {
-    Village()
+export default (config?: {[key: string]: any}, jq$?: CallableFunction| null) => {
+    Village(config, jq$)
 }

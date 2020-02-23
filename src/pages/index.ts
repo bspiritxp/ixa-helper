@@ -10,7 +10,7 @@ import Village from './village'
 const emptyHandler = () => null
 
 interface Router {
-    readonly [key: string]: (jquery: CallableFunction|null) => void
+    readonly [key: string]: (config?: {[key: string]: any}, jquery?: CallableFunction|null) => void
 }
 
 const router: Router = {

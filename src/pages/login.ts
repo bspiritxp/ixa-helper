@@ -1,4 +1,4 @@
-const Login = (jq$: CallableFunction|null) => {
+const Login = (config?: {[key: string]: any}, jq$?: CallableFunction|null) => {
     // use JQuery instead of the typed jq$ to bypass the invoke on possible null object issue
     // given we don't have control over document and other elements on the page.
 

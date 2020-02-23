@@ -4,7 +4,7 @@ import {complement, compose, filter, head, isEmpty, isNil, map} from 'ramda'
 
 const selectMenu = `<% if ('user' == belong) { %> <li><a href=''>选中</a></li> <% } %>`
 
-export default (jq$: CallableFunction|null) => {
+export default (config?: {[key: string]: any}, jq$?: CallableFunction|null) => {
     const mapWrap = query('#MapContentWrap').get() as HTMLElement
 
     mapWrap.addEventListener('click', (e: Event) => {
