@@ -1,12 +1,12 @@
-import { ALL_UNITS, Facility, TRAINING_MODE, UNIT_CATEGORY,
+import { ALL_UNITS, Facility, KAJI, KIBA,
+         TRAINING_MODE,
+         UNIT_CATEGORY,
          YARI,
          YUMI,
-         KIBA,
-         KAJI,
        } from '@/components/facility'
 import { currentVillage } from '@/utils/data'
 import { createElement, query, queryAll } from '@/utils/dom'
-import { compose, equals, forEach, forEachObjIndexed, head, invert, prop, isNil, map } from 'ramda'
+import { compose, equals, forEach, forEachObjIndexed, head, invert, isNil, map, prop } from 'ramda'
 
 let currentSelectedCategory = UNIT_CATEGORY.NO_SELECT
 let currentSelectedMode = TRAINING_MODE.NORMAL // default to normal
@@ -28,8 +28,8 @@ const mainContainer = 'div#unitTraining'
  *         '123': '(313)'
  *     }
  * }
-*/
-let unitDataMap: {[key:string]:{[key: string]: string}}
+ */
+let unitDataMap: {[key: string]: {[key: string]: string}}
 
 const UnitCategory: {[key: string]: string} = {
     類別: '0',
@@ -62,8 +62,18 @@ const unitTrainingDataRowTemplate = (name: string, quantity: string) => `
 <button type="button">確認</button><br>
 `
 
-const Village = () => {
-    const cv = currentVillage()
+// TODO: figure out a better way to query elements
+const setBuildFinishTime = () => {
+    const beingBuiltTarget = query('.running_list > li > span .build_now')
+    const toBeBuiltTarget = query('.running_list > li > span .build_ready')
+
+    if (toBeBuiltTarget.o) {
+//        const finishTime = toBeBuiltTarget.o.parentElement.parentElement?.querySelector('.buildTime')
+    }
+}
+
+const cv = currentVillage()
+const Village = (config?: {[key: string]: any}, jq$?: CallableFunction|null) => {
     if (cv.id === null) { return }
     query('select#select_village')
         .map(el => el as HTMLInputElement)
@@ -84,6 +94,13 @@ const Village = () => {
             bindEventToModeSelection(unitTrainingDiv)
         }
     })
+
+    // enables auto build on current village after refresh
+    if (config) {
+        cv.initialize(config.buildPriority[cv.id])
+    } else {
+        cv.initialize()
+    }
 }
 
 const initiateSelectOptions = (): string => {
@@ -151,16 +168,16 @@ const bindEventToModeSelection = (container: HTMLElement) => {
             selection.addEventListener('change', event => {
                 const triggeredElement = event.target as HTMLSelectElement
                 currentSelectedMode = +triggeredElement.value as TRAINING_MODE
-                if(currentSelectedCategory !== UNIT_CATEGORY.NO_SELECT) {
+                if (currentSelectedCategory !== UNIT_CATEGORY.NO_SELECT) {
                     switch (currentSelectedMode) {
                         case TRAINING_MODE.NORMAL:
-                            buildUI(unitDataMap['normal'])
+                            buildUI(unitDataMap.normal)
                             break
                         case TRAINING_MODE.HIGH:
-                            buildUI(unitDataMap['high'])
+                            buildUI(unitDataMap.high)
                             break
                         case TRAINING_MODE.UPGRADE:
-                            buildUI(unitDataMap['upgrade'])
+                            buildUI(unitDataMap.upgrade)
                             break
                     }
                     bindEventToMaxQuantitySpan(container)
@@ -232,7 +249,7 @@ const postToServer = async (quantity: string, toUnitId: string, fromUnitId?: str
 
 const postToFacility = async (target: string, quantity: string, toUnitId: string, fromUnitId?: string) => {
     query(target).map(el => el as HTMLAreaElement).then(facElem => {
-        const facility  = new Facility(facElem)
+        const facility  = new Facility(facElem, cv.id)
         facility.trainUnit(quantity, currentSelectedMode, toUnitId, fromUnitId).then(() => {
             // Refresh the data first then UI so that it displays the right quantity
             getMaxTrainableUnitCount(currentSelectedCategory)
@@ -275,9 +292,9 @@ const fetchFromFacility = async (target: string) => {
     query(target)
         .map(el => el as HTMLAreaElement)
         .then(facElem => {
-            const facility = new Facility(facElem)
+            const facility = new Facility(facElem, cv.id)
             facility.getUnitInfo().then(doc => {
-                getPossibleQuantity(doc) //new data structure
+                getPossibleQuantity(doc) // new data structure
                 buildUI(unitDataMap[TRAINING_MODE[currentSelectedMode].toLowerCase()])
                 // Rebind event as we refresh the content
                 const container = query(mainContainer).o as HTMLElement
@@ -311,7 +328,7 @@ const fetchFromFacility = async (target: string) => {
  * match group:
  * full match 'high[xxx]'
  * group one 'high'
-
+ *
  * upgrade training will have id pattern 'unit_value_upgrade[xxx_yyy]'
  * full match 'upgrade[xxx_yyy]
  * group one 'upgrade'
@@ -322,25 +339,25 @@ const fetchFromFacility = async (target: string) => {
  * as the final display name rendering will be dynamic, depending on what's available from
  * the data map we are constructing here
  *
- **/
+ */
 const getPossibleQuantity = (doc: Document) => {
     const regex = /(high|upgrade)?\[(\d{3})_?(\d{3})?\]$/
-    let normal:{[key: string]: string } = {}
-    let high: {[key: string]: string } = {}
-    let upgrade: {[key: string]: string } = {}
+    const normal: {[key: string]: string } = {}
+    const high: {[key: string]: string } = {}
+    const upgrade: {[key: string]: string } = {}
     const targets = queryAll('form[name="createUnitForm"]', doc)
     const constructDataMap = (form: HTMLFormElement) => {
         query('input', form).map(el => el as HTMLInputElement).then(input => {
             const examString = input.id
-        const quantityMatch  = (/\(\d+\)/).exec(form.innerText.trim())
+            const quantityMatch  = (/\(\d+\)/).exec(form.innerText.trim())
 
             // Exam group one to determine training mode
             // normal -> undefined
             // high -> 'high'
             // upgrade -> 'upgrade'
             const unitCodeMatch = regex.exec(examString)
-            if(unitCodeMatch && quantityMatch) {
-                if(isNil(unitCodeMatch[1])){
+            if (unitCodeMatch && quantityMatch) {
+                if (isNil(unitCodeMatch[1])) {
                     normal[unitCodeMatch[2]] = quantityMatch[0]
                 } else if (equals(unitCodeMatch[1], 'high')) {
                     high[unitCodeMatch[2]] = quantityMatch[0]
@@ -353,9 +370,9 @@ const getPossibleQuantity = (doc: Document) => {
     }
     const mergeAll = () => {
         return {
-            'normal': normal,
-            'high': high,
-            'upgrade': upgrade,
+            normal,
+            high,
+            upgrade,
         }
     }
 
@@ -365,7 +382,7 @@ const getPossibleQuantity = (doc: Document) => {
 // Build the complete unit training row UI
 const buildUI = (data: {[key: string]: string}) => {
     let completeUI = ''
-    switch(currentSelectedCategory) {
+    switch (currentSelectedCategory) {
         case UNIT_CATEGORY.YARI:
             const buildYARI = (quantity: string, k: string|number) => {
                 const displayName = prop(k, YARI)
@@ -405,7 +422,7 @@ const buildUI = (data: {[key: string]: string}) => {
 // Given a display name find the corresponding unit code, either xxx or xxx_yyy
 // depending on current selected category and mode
 const getUnitCode = (displayName: string): string => {
-    switch(currentSelectedCategory) {
+    switch (currentSelectedCategory) {
         case UNIT_CATEGORY.YARI:
             return head(prop(displayName, invert(YARI)))
         case UNIT_CATEGORY.YUMI:
@@ -423,6 +440,6 @@ const makeRow = (name: string, quantity: string): string => {
     return unitTrainingDataRowTemplate(name, quantity)
 }
 
-export default () => {
-    Village()
+export default (config?: {[key: string]: any}, jq$?: CallableFunction| null) => {
+    Village(config, jq$)
 }

@@ -1,4 +1,4 @@
-const Login = (jq$: CallableFunction|null) => {
+const Login = (config?: {[key: string]: any}, jq$?: CallableFunction|null) => {
     // use JQuery instead of the typed jq$ to bypass the invoke on possible null object issue
     // given we don't have control over document and other elements on the page.
 
@@ -14,7 +14,7 @@ const Login = (jq$: CallableFunction|null) => {
         }
 
         if (location.pathname === '/') {
-            if(jQuery('#yahoo_login_btn').length) {
+            if (jQuery('#yahoo_login_btn').length) {
                 jQuery('#yahoo_login_btn').click()
             } else {
                 let href = jQuery('#btnObtEntry').find('a').attr('href')
@@ -27,7 +27,7 @@ const Login = (jq$: CallableFunction|null) => {
         }
 
         if (location.pathname === '/index.php') {
-            if(jQuery('#yahoo_login_btn').length) {
+            if (jQuery('#yahoo_login_btn').length) {
                 jQuery('#yahoo_login_btn').click()
             } else {
                 const href = jQuery('#btnGame').find('a').attr('href')

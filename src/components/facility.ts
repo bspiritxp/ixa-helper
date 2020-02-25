@@ -4,7 +4,7 @@ import { isNil } from 'ramda'
  * Modeling facility, mainly focus on unit training ones as others don't have much to do with them but upgrading
  */
 
-const YARI:{[key:string]: string} = {
+const YARI: {[key: string]: string} = {
     '321': '足軽',
     '322': '長槍足軽',
     '323': '武士',
@@ -13,7 +13,7 @@ const YARI:{[key:string]: string} = {
     '322_323': '長槍足軽->武士',
 }
 
-const YUMI:{[key:string]: string} = {
+const YUMI: {[key: string]: string} = {
     '325': '弓足軽',
     '326': '長弓兵',
     '327': '弓騎馬',
@@ -22,7 +22,7 @@ const YUMI:{[key:string]: string} = {
     '326_327': '長弓兵->弓騎馬',
 }
 
-const KIBA:{[key:string]: string} = {
+const KIBA: {[key: string]: string} = {
     '329': '騎馬兵',
     '330': '精鋭騎馬',
     '331': '赤備え',
@@ -31,7 +31,7 @@ const KIBA:{[key:string]: string} = {
     '330_331': '精鋭騎馬->赤備え',
 }
 
-const KAJI:{[key:string]: string} = {
+const KAJI: {[key: string]: string} = {
     '333': '破城鎚',
     '334': '攻城櫓',
     '335': '大筒兵',
@@ -44,7 +44,7 @@ const KAJI:{[key:string]: string} = {
     '333_335': '破城鎚->大筒兵',
     '334_346': '攻城櫓->穴太衆',
     '334_335': '攻城櫓->大筒兵',
-    '346_335': '穴太衆->大筒兵'
+    '346_335': '穴太衆->大筒兵',
 } as const
 
 // Define unit and their corresponding code
@@ -76,19 +76,29 @@ interface UnitTraining {
     to: string
 }
 
+/**
+ * Facility can either be resource producer or resource consumer
+ * producer will be things like: 木工所/伐採所, 機織り場/機織り工房, たたら場/高殿, 水田/棚田
+ * consumer will be things like: 足軽兵舎, 弓兵舎, 厩舎, 兵器鍛冶
+ */
 class Facility {
     public dom: HTMLAreaElement | null = null
     public x: string | null = null
     public y: string | null = null
     public title: string | null = null
+    private villageId: number | null = null
     private postEndpoint: URL
+    private buildEndpoint: URL
 
     // constructor should explicitly have fields defined, cannot be nested in a subroutine,
     // which applies to postEndpoint here
-    constructor(el: HTMLElement) {
+    constructor(el: HTMLElement, vid: number | null) {
         this.dom = el as HTMLAreaElement
+        this.villageId = vid
         this.title = this.dom.title
         this.postEndpoint = new URL(this.dom.href, document.location.href.slice(0, location.href.lastIndexOf('/')))
+        this.buildEndpoint = new URL(this.extractPath(this.dom.href),
+                                     document.location.href.slice(0, location.href.lastIndexOf('/')))
         this.x = this.postEndpoint.searchParams.get('x')
         this.y = this.postEndpoint.searchParams.get('y')
     }
@@ -101,7 +111,8 @@ class Facility {
         return true
     }
 
-    public trainUnit(quantity: string, trainingMode: TRAINING_MODE, toUnitId: string, fromUnitId?: string ): Promise<Response> {
+    public trainUnit(quantity: string, trainingMode: TRAINING_MODE, toUnitId: string, fromUnitId?: string )
+    : Promise<Response> {
         switch (trainingMode) {
             case TRAINING_MODE.NORMAL:
                 return this.normalTraining(quantity, toUnitId)
@@ -116,6 +127,14 @@ class Facility {
 
     public async getUnitInfo(): Promise<Document> {
         return  await getHtml(this.postEndpoint.href)
+    }
+
+    public async build(): Promise<boolean>  {
+        return await post(this.buildEndpoint.href, '').then(() => {
+            return Promise.resolve(true)
+        }, () => {
+            return Promise.reject(false)
+        })
     }
 
     /* Need to append the hash here to distinguish training mode
@@ -178,6 +197,12 @@ class Facility {
             default:
         }
         return payload
+    }
+
+    private extractPath(path: string): string {
+        let newPath = path.replace(/(.*\/)(facility)(.*)/, '$1build$3')
+        newPath += '&vid=' + this.villageId
+        return newPath
     }
 }
 
