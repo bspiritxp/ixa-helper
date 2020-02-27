@@ -137,9 +137,23 @@ export default class Village {
         let selectedCategoryFacilities: Facility[]
         let sortedFacilities: Facility[]
         switch (category) {
+            case 'arsenal':
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().arsenal)
+                break
+            case 'lumber':
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().lumber)
+                break
+            case 'cotton':
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().cotton)
+                break
+            case 'steel':
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().steel)
+                break
+            case 'grain':
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().grain)
+                break
             case 'storage':
-                selectedCategoryFacilities = this.groupFacilities().storage
-                sortedFacilities = sort(lowToHigh)(selectedCategoryFacilities)
+                sortedFacilities = sort(lowToHigh)(this.groupFacilities().storage)
                 break
             case 'resource':
             case 'none':
