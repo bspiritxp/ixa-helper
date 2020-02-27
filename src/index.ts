@@ -24,6 +24,11 @@ const modalContent = '自动种田 <input type=\'checkbox\' name="auto-build"/>\
 const PriorityOptions = {
     无: 'none',
     资源: 'resource',
+    木: 'lumber',
+    綿: 'cotton',
+    鉄: 'steel',
+    糧: 'grain',
+    军事: 'arsenal',
     容量: 'storage',
 }
 const configBtnStyle = {
@@ -103,7 +108,7 @@ const buildConfigUI = () => {
 }
 
 const addDynamicContent = () => {
-    const targets = queryAll('li[data-village_id]')
+    const targets = [...queryAll('.my_capital li'), ...queryAll('.my_country li')]
     const villageList = compose(map(initVillage), map(el => el as HTMLElement))([...targets])
 
     const populateOptions = (el: HTMLSelectElement) => {
@@ -174,7 +179,11 @@ const startAutoBuild = () => {
 const addAutoBuildButton = () => {
     autoBuildBtn.onclick = startAutoBuild
     autoBuildBtn.textContent = '建設始める'
-    query('.sideBoxHead > h4').then(e => e.before(autoBuildBtn))
+    query('.my_capital').then(e => {
+        if(e.previousElementSibling) {
+            e.previousElementSibling.prepend(autoBuildBtn)
+        }
+    })
 }
 
 const loadConfig = () => {
