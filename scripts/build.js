@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const readline = require('readline');
 const rootPath = path.resolve(__dirname, '..');
 const workPath = path.resolve(rootPath, 'dist');
 const distFileName = 'ixa-helper.user.js';
@@ -23,21 +22,22 @@ try {
       if(err) {
         return console.log(err)
       }
+
+      fs.readFile(path.resolve(workPath, 'main.js'), (err, data) => {
+        if (err) throw err;
+        fs.open(target, 'a', (err, fd) => {
+          fs.appendFile(fd, data, err => {
+            if (err) throw err
+          })
+        })
+      })
     })
   })
 
 } catch (Exception) {
-    // nothing to do 
+  // nothing to do
 }
 
-fs.readFile(path.resolve(workPath, 'main.js'), (err, data) => {
-    if (err) throw err;
-    fs.open(target, 'a', (err, fd) => {
-        fs.appendFile(fd, data, err => {
-            if (err) throw err
-        })
-    })
-})
 // })
 
 //version naming convention, major.minor.patch
