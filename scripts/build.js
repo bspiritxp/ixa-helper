@@ -19,12 +19,13 @@ try {
     }
     const result = data.replace(VERSION_REGEX, bumpVersion(data.match(VERSION_REGEX)))
     fs.writeFile(src, result, 'utf8', (err) => {
+      fs.copyFileSync(src, target);
       if(err) {
         return console.log(err)
       }
     })
   })
-    fs.copyFileSync(src, target);
+
 } catch (Exception) {
     // nothing to do 
 }
