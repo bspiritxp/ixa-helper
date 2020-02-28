@@ -1,5 +1,5 @@
 import { Village } from '@/components'
-import {createElement, createElementWithStyle, createStyledElement, query, queryAll} from '@/utils/dom'
+import {createElement, createElementWithStyle, createStyledElement, query, queryAll, setCss} from '@/utils/dom'
 import Optional from '@/utils/tool'
 import { compose, forEach, forEachObjIndexed, keys, map, reduce, sortBy } from 'ramda'
 import Router from './pages'
@@ -173,12 +173,17 @@ const startAutoBuild = () => {
     }, Promise.resolve(true), villageList).then(() => {
         autoBuildBtn.textContent = '完成'
         autoBuildBtn.style.backgroundColor = 'lawngreen'
+        setTimeout(() => {
+            autoBuildBtn.textContent = '建設'
+            setCss(autoBuildBtn, configBtnStyle)
+            autoBuildBtn.disabled = false
+        }, 2000)
     })
 }
 
 const addAutoBuildButton = () => {
     autoBuildBtn.onclick = startAutoBuild
-    autoBuildBtn.textContent = '建設始める'
+    autoBuildBtn.textContent = '建設'
     query('.my_capital').then(e => {
         if(e.previousElementSibling) {
             e.previousElementSibling.prepend(autoBuildBtn)
