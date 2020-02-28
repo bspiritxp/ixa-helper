@@ -45,7 +45,6 @@ fs.readFile(path.resolve(workPath, 'main.js'), (err, data) => {
 const bumpVersion = (matchedString) => {
   if(matchedString) {
     const version = matchedString[0].split('.').map(num => parseInt(num, 10));
-    console.log(stage)
     if(stage === 'release') {
       //update minor version
       version[1]++
